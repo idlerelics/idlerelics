@@ -4,12 +4,21 @@ using UnityEngine;
 
 namespace Game.Config
 {
+    /// <summary>
+    /// Enum for the sex/gender of a unit (NPC or player character).
+    /// Determines which model/animations to use.
+    /// </summary>
     public enum UnitSexType
     {
         Male,
         Female
     }
 
+    /// <summary>
+    /// Enum identifying which player character slot this config belongs to.
+    /// The game supports multiple unlockable player characters (0 through 4).
+    /// The explicit "= 0, = 1" values ensure the enum maps to array indices.
+    /// </summary>
     public enum PlayerIndex
     {
         Player0 = 0,
@@ -19,26 +28,42 @@ namespace Game.Config
         Player4 = 4
     }
 
+    /// <summary>
+    /// Configuration for a player character. Each character has different stats,
+    /// appearance, and unlock conditions.
+    /// Created via Unity menu: Create > Config > PlayerConfig.
+    ///
+    /// The InfoMap dictionary is built at runtime from the Infos array for fast
+    /// attribute lookups by type (e.g., "what's this character's WalkSpeed bonus?").
+    /// </summary>
     [Serializable]
     [CreateAssetMenu(menuName = "Config/PlayerConfig")]
     public sealed class PlayerConfig : ScriptableObject
     {
-        public PlayerIndex Index; 
-        public UnitSexType Sex;
-        public string LabelKey;
-        public Sprite Icon;
-        public Mesh Body;
-        public AttributeInfo[] Infos;
-        public UnlockConditionConfig UnlockConditionConfig;
+        public PlayerIndex Index;          // Which player slot (Player0 through Player4)
+        public UnitSexType Sex;            // Male or Female (affects model/animations)
+        public string LabelKey;            // Localization key for the character's name
+        public Sprite Icon;                // Character portrait for the UI
+        public Mesh Body;                  // 3D mesh for the character model
+        public AttributeInfo[] Infos;      // Array of attribute bonuses this character provides
+        public UnlockConditionConfig UnlockConditionConfig; // How to unlock this character
 
+        /// <summary>
+        /// Dictionary mapping AttributeType to AttributeInfo for fast lookups.
+        /// Built at runtime by Init() since Unity can't serialize Dictionaries.
+        /// </summary>
         public Dictionary<AttributeType, AttributeInfo> InfoMap;
 
+        /// <summary>
+        /// Populates the InfoMap dictionary from the serialized Infos array.
+        /// Called after loading the config.
+        /// </summary>
         public void Init()
         {
             InfoMap = new Dictionary<AttributeType, AttributeInfo>();
             foreach (var info in Infos)
             {
-                InfoMap[info.Type] = info;
+                InfoMap[info.Type] = info; // Map each attribute type to its info
             }
         }
     }

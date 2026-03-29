@@ -13,13 +13,24 @@ using Game.Level.Place;
 
 namespace Game.Level.Player
 {
+    /// <summary>
+    /// Base class for all staff characters (player and NPCs).
+    /// "abstract" means you cannot create an instance of this class directly --
+    /// you must create a subclass (like PlayerController) that fills in the details.
+    /// It extends EntityUpdatableController, which provides upgrade/purchase logic.
+    /// </summary>
     public abstract class StaffController : EntityUpdatableController
     {
+        // Events use the "Action" delegate type. Other scripts can subscribe to these
+        // events to be notified when something happens (e.g., when staff is purchased).
+        // The "?" in ON_PURCHASED?.Invoke() means "only fire if someone is listening."
         public event Action<StaffController> ON_PURCHASED;
         public event Action<StaffController> ON_ARRIVED_HOME;
         public event Action<StaffController> ON_ARRIVED_TO_ITEM;
         public event Action<StaffController> ON_ARRIVED_TO_UTILITY;
 
+        // "abstract" properties and methods MUST be implemented by any subclass.
+        // Transform is a Unity type that holds position, rotation, and scale of a GameObject.
         public abstract Transform InventoryHolder { get; }
         public abstract InventoryType TargetInventory { get; }
         public abstract int Area { get; }
@@ -44,27 +55,36 @@ namespace Game.Level.Player
 
         public abstract void Hidden();
 
+        /// <summary>Notifies all listeners that this staff member has been purchased.</summary>
         public void FireStaffPurchased()
         {
             ON_PURCHASED?.Invoke(this);
         }
 
+        /// <summary>Notifies listeners that this staff arrived at a utility (e.g., cleaning station).</summary>
         public void FireStaffArrivedToUtility()
         {
             ON_ARRIVED_TO_UTILITY?.Invoke(this);
         }
 
+        /// <summary>Notifies listeners that this staff arrived at an item (e.g., a room item).</summary>
         public void FireArrivedToItem()
         {
             ON_ARRIVED_TO_ITEM?.Invoke(this);
         }
 
+        /// <summary>Notifies listeners that this staff arrived back at their home position.</summary>
         internal void FireArrivedHome()
         {
             ON_ARRIVED_HOME?.Invoke(this);
         }
     }
 
+    /// <summary>
+    /// Determines whether a player character is unlocked based on various conditions
+    /// (e.g., purchasing a hotel, watching ads, or logging in for a number of days).
+    /// "sealed" means no other class can inherit from this one.
+    /// </summary>
     public sealed class UnlockConditionModel
     {
         private const string _hotelPurchasePattern = "OPEN {0} HOTEL";
@@ -75,9 +95,13 @@ namespace Game.Level.Player
         private const string _straightWord = "STRAIGHT";
         private const string _loginDaysLeftPattern = "LOGIN TO THE GAME {0} DAYS {1}\n{2} DAYS LEFT";
 
-        public bool IsUnlocked;
-        public string Message;
+        public bool IsUnlocked;  // true if the player character is available to use
+        public string Message;   // UI message shown to the player about unlock progress
 
+        /// <summary>
+        /// Constructor: runs once when this object is created.
+        /// Checks the unlock condition type and determines if the player is unlocked.
+        /// </summary>
         public UnlockConditionModel(int playerIndex, UnlockConditionConfig config, GameConfig gameConfig, GameManager gameManager)
         {
             var messageResult = "";
@@ -142,10 +166,14 @@ namespace Game.Level.Player
             IsUnlocked = isUnlockedResult;
         }
 
+        /// <summary>
+        /// Loads a saved target value from PlayerPrefs (Unity's simple key-value save system).
+        /// PlayerPrefs stores small amounts of data on the player's device between sessions.
+        /// </summary>
         public int LoadTargetValue(int playerIndex, string conditionKey, int defaultValue)
         {
             var key = conditionKey + playerIndex;
-            var result = PlayerPrefs.GetInt(key);
+            var result = PlayerPrefs.GetInt(key); // Read saved integer from disk
             if (result == 0)
             {
                 result = defaultValue;
@@ -155,22 +183,32 @@ namespace Game.Level.Player
         }
     }
 
+    /// <summary>
+    /// Holds all the data for a player character: body mesh, speed, capacity, inventories, etc.
+    /// Extends "Observable" so other parts of the code can listen for changes to this data
+    /// (this is part of the Observer design pattern).
+    /// </summary>
     public class PlayerModel : Observable
     {
-        public Mesh BodyMesh;
-        public UnitSexType Sex;
-        public string Label;
-        public int Index;
-        public Sprite Icon;
-        public float NominalSpeed;
+        public Mesh BodyMesh;       // The 3D mesh used for the player's body
+        public UnitSexType Sex;     // Male or female character type
+        public string Label;        // Display name of the character
+        public int Index;           // Unique index identifying this player
+        public Sprite Icon;         // 2D icon image shown in UI
+        public float NominalSpeed;  // The base walking speed (before any modifiers)
 
         public bool IsSelected;
 
         public readonly UnlockConditionModel UnlockModel;
 
+        // Dictionary = a lookup table. Key: AttributeType (e.g., Speed), Value: the attribute data.
         public readonly Dictionary<AttributeType, AttributeModel> Attributes;
+        // List of items the player is currently carrying.
         public readonly List<InventoryController> Inventories;
 
+        /// <summary>
+        /// Constructor: builds a PlayerModel from config data (set up in the Unity Editor).
+        /// </summary>
         public PlayerModel(PlayerConfig config, GameConfig gameConfig, GameManager gameManager)
         {
             Index = (int)config.Index;
@@ -201,16 +239,20 @@ namespace Game.Level.Player
             NominalSpeed = WalkSpeed;
         }
 
+        /// <summary>Returns true if the player can pick up more items.</summary>
         public bool HasInventorySpace()
         {
             return Inventories.Count < Capacity;
         }
 
+        /// <summary>Returns true if the player is carrying at least one item.</summary>
         public bool HasInventory()
         {
             return Inventories.Count > 0;
         }
 
+        // Properties with "get" are like read-only shortcuts to computed values.
+        // Capacity reads the current value from the Capacity attribute.
         public int Capacity
         {
             get { return (int)Attributes[AttributeType.Capacity].Value; }
@@ -228,15 +270,24 @@ namespace Game.Level.Player
         }
     }
 
+    /// <summary>
+    /// The main player controller. This is the "brain" of the player character.
+    /// It manages the player's state (idle, walking, etc.) using a State Machine pattern,
+    /// holds references to the player's View (visuals) and Model (data), and provides
+    /// methods that other systems call to control the player.
+    /// "sealed" means no class can inherit from this.
+    /// </summary>
     public sealed class PlayerController : StaffController
     {
-        private const float _inventoryHeight = 0.6f;
+        private const float _inventoryHeight = 0.6f; // Vertical spacing between stacked inventory items
 
-        public event Action ON_IDLE;
+        public event Action ON_IDLE; // Fired when the player enters the idle state
 
         private PlayerModel _model;
 
         private readonly PlayerView _view;
+        // StateManager handles switching between different player states (idle, walking, etc.).
+        // This is the "State Machine" design pattern -- only one state is active at a time.
         private readonly StateManager<PlayerState> _stateManager;
 
         public PlayerView View => _view;
@@ -247,11 +298,17 @@ namespace Game.Level.Player
 
         public override int Area => -1;
 
+        /// <summary>Calculates where to place an inventory item visually, stacking them vertically.</summary>
         public Vector3 GetInventoryPosition(int index)
         {
             return InventoryHolder.transform.position + new Vector3(0f, index * _inventoryHeight, 0f);
         }
 
+        /// <summary>
+        /// Constructor: sets up the player with its view, model, and dependency injection context.
+        /// "Context" and "Injector" are part of a Dependency Injection (DI) system --
+        /// DI lets objects get their dependencies automatically instead of creating them manually.
+        /// </summary>
         public PlayerController(PlayerView view, PlayerModel model, Context context)
         {
             _view = view;
@@ -271,11 +328,16 @@ namespace Game.Level.Player
             injector.Inject(_stateManager);
         }
 
+        /// <summary>Cleans up the state manager when this controller is no longer needed.</summary>
         public override void Dispose()
         {
             _stateManager.Dispose();
         }
 
+        /// <summary>
+        /// Switches the player to a new state (e.g., from Walking to Idle).
+        /// The "where T : PlayerState" constraint means T must be a PlayerState subclass.
+        /// </summary>
         public void SwitchToState<T>(T instance) where T : PlayerState
         {
             _stateManager.SwitchToState(instance);
@@ -314,11 +376,13 @@ namespace Game.Level.Player
         {
         }
 
+        /// <summary>Fires the ON_IDLE event so other systems know the player is now idle.</summary>
         internal void FireIdle()
         {
             ON_IDLE?.Invoke();
         }
 
+        /// <summary>Updates the player's data model and tells the view to reflect the change.</summary>
         public void SetModel(PlayerModel model)
         {
             _model = model;

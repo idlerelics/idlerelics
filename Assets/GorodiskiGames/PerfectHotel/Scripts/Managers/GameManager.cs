@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Game.Config;
 using Game.Domain;
@@ -17,37 +17,56 @@ using Utilities;
 
 namespace Game
 {
+    /// <summary>
+    /// Central hub for all runtime game state. Holds references to the player,
+    /// rooms, toilets, reception, elevator, and all interactive items.
+    ///
+    /// This is NOT a MonoBehaviour -- it's a plain C# class managed by the DI container.
+    /// Other systems use events on this class to communicate (loose coupling).
+    ///
+    /// Events (Action delegates) are the primary communication mechanism:
+    /// - Systems subscribe to events they care about
+    /// - When something happens, the event is fired (SafeInvoke)
+    /// - All subscribers are notified without the sender knowing about them
+    /// </summary>
     public sealed class GameManager : IDisposable
     {
-        public event Action<Vector3, int> ADD_GAME_PROGRESS;
-        public event Action<int> PROGRESS_CHANGED;
-        public event Action<int> LEVEL_CHANGED;
-        public event Action<AreaController> AREA_PURCHASED;
-        public event Action<Vector3> FLY_TO_REMOVE_CASH;
-        public event Action<ItemController> ITEM_ADDED;
-        public event Action<Vector3, int> ON_NOTIFICATION_NEED_LVL;
-        public event Action ELEVATOR_PURCHASED;
-        public event Action<ItemToiletController> ON_PLAYER_TRY_DROP_INVENTORY;
-        public event Action<bool> ON_PLAYERS_HUD_OPEN;
-        public event Action ON_TRY_SHOW_INTERSTITIAL;
+        // ---- Events ----
+        // These events notify other systems when important things happen.
+        // Action<T> is a delegate that takes parameters and returns void.
+        public event Action<Vector3, int> ADD_GAME_PROGRESS;           // Progress earned at a world position
+        public event Action<int> PROGRESS_CHANGED;                     // Total progress value changed
+        public event Action<int> LEVEL_CHANGED;                        // Player changed to a new level
+        public event Action<AreaController> AREA_PURCHASED;            // A new area was unlocked
+        public event Action<Vector3> FLY_TO_REMOVE_CASH;               // Cash should fly to a position and be removed
+        public event Action<ItemController> ITEM_ADDED;                // A new interactive item appeared
+        public event Action<Vector3, int> ON_NOTIFICATION_NEED_LVL;    // "Need level X" notification at position
+        public event Action ELEVATOR_PURCHASED;                        // The elevator was bought
+        public event Action<ItemToiletController> ON_PLAYER_TRY_DROP_INVENTORY; // Player tries to deliver inventory to toilet
+        public event Action<bool> ON_PLAYERS_HUD_OPEN;                 // Players HUD opened/closed
+        public event Action ON_TRY_SHOW_INTERSTITIAL;                  // Time to try showing an interstitial ad
 
-        private List<ItemController> _items;
+        // ---- Game State ----
+        private List<ItemController> _items;            // All active interactive items in the world
         public List<ItemController> Items => _items;
 
-        public readonly GameModel Model;
-        public PlayerController Player;
-        public ReceptionController Reception;
-        public List<RoomController> Rooms;
-        public List<ToiletController> Toilets;
-        public readonly Dictionary<int, AreaController> AreasMap;
-        public ElevatorController Elevator;
-        public List<EntityController> Entities;
-        public UtilityController Utility;
-        public readonly Dictionary<UnitController, RoomController> CustomerRoomMap;
+        public readonly GameModel Model;                // Persistent save data (readonly = set only in constructor)
+        public PlayerController Player;                 // The player character
+        public ReceptionController Reception;           // The front desk
+        public List<RoomController> Rooms;              // All rooms in the current level
+        public List<ToiletController> Toilets;          // All toilets
+        public readonly Dictionary<int, AreaController> AreasMap;  // Areas indexed by number
+        public ElevatorController Elevator;              // The elevator (for switching levels)
+        public List<EntityController> Entities;          // All purchasable entities
+        public UtilityController Utility;                // The utility room (supplies)
+        public readonly Dictionary<UnitController, RoomController> CustomerRoomMap; // Maps customers to their assigned rooms
 
+        /// <summary>
+        /// Constructor -- loads the game model from save data and initializes all collections.
+        /// </summary>
         public GameManager(GameConfig config)
         {
-            Model = GameModel.Load(config);
+            Model = GameModel.Load(config);                  // Load saved progress or create new
             AreasMap = new Dictionary<int, AreaController>();
             Rooms = new List<RoomController>();
             CustomerRoomMap = new Dictionary<UnitController, RoomController>();
@@ -60,16 +79,21 @@ namespace Game
         {
         }
 
+        /// <summary>
+        /// Adds an interactive item to the world (if not already present).
+        /// Fires ITEM_ADDED so systems like PlayerIdleState can check for nearby items.
+        /// </summary>
         public void AddItem(ItemController item)
         {
             if (!_items.Contains(item))
             {
                 _items.Add(item);
 
-                ITEM_ADDED.SafeInvoke(item);
+                ITEM_ADDED.SafeInvoke(item); // Notify subscribers
             }
         }
 
+        /// <summary>Removes an item from the active items list (e.g., when player starts using it).</summary>
         public void RemoveItem(ItemController item)
         {
             if (_items.Contains(item))
@@ -80,9 +104,13 @@ namespace Game
 
         internal void FireElevatorPurchased()
         {
-            ELEVATOR_PURCHASED?.Invoke();
+            ELEVATOR_PURCHASED?.Invoke(); // ?. is the null-conditional operator (same as SafeInvoke)
         }
 
+        /// <summary>
+        /// Finds the first room that is available (not occupied by a customer).
+        /// Returns null if all rooms are full.
+        /// </summary>
         public RoomController FindAvailableRoom()
         {
             foreach (var room in Rooms)
@@ -93,6 +121,10 @@ namespace Game
             return null;
         }
 
+        /// <summary>
+        /// Finds an item of a specific type in a specific area.
+        /// Used by NPCs to find where they need to go (e.g., find the cleaning spot in area 2).
+        /// </summary>
         public ItemController FindUsedItem(int targetArea, ItemType targetItem)
         {
             foreach (var item in _items)
@@ -103,18 +135,26 @@ namespace Game
             return null;
         }
 
+        /// <summary>
+        /// Checks if an item's area matches the target area.
+        /// -1 means "any area" (wildcard match).
+        /// </summary>
         private bool AreaMatch(int targetArea, int itemArea)
         {
             bool result = false;
 
             if (targetArea == -1)
-                result = true;
+                result = true;           // -1 = match any area
             else if (itemArea == targetArea)
-                result = true;
+                result = true;           // Exact match
 
             return result;
         }
 
+        /// <summary>
+        /// Finds the closest interactive item to the player that's within interaction range.
+        /// Uses Vector3.Distance to calculate the straight-line distance in 3D space.
+        /// </summary>
         public ItemController FindClosestUsedItem()
         {
             foreach (var item in _items)
@@ -125,6 +165,9 @@ namespace Game
             return null;
         }
 
+        /// <summary>
+        /// Finds the closest entity (purchasable building/room) within a given radius of the player.
+        /// </summary>
         public EntityController FindClosestEntity(float radius)
         {
             foreach (var entity in Entities)
@@ -135,6 +178,7 @@ namespace Game
             return null;
         }
 
+        /// <summary>Finds a purchased toilet in a specific area.</summary>
         public ToiletController FindToilet(int area)
         {
             foreach (var toilet in Toilets)
@@ -145,6 +189,7 @@ namespace Game
             return null;
         }
 
+        /// <summary>Finds an area by its number. Logs an error if not found.</summary>
         public AreaController FindArea(int number)
         {
             foreach (var area in AreasMap.Values)
@@ -155,6 +200,9 @@ namespace Game
             Log.Error("Error. Area " + number + " not found");
             return null;
         }
+
+        // ---- Event fire methods ----
+        // These methods are called by other systems to broadcast events.
 
         public void FireAddGameProgress(Vector3 position, int progressDelta)
         {

@@ -7,19 +7,35 @@ using Utilities;
 
 namespace Game.Managers
 {
+    /// <summary>
+    /// Google AdMob implementation of the ad provider.
+    /// Handles loading, showing, and reloading banner, interstitial, and rewarded ads.
+    ///
+    /// The reload system uses dictionaries mapping ad IDs to scheduled reload times.
+    /// When an ad fails to load, it's scheduled to retry after kReloadDuration seconds.
+    /// The OnPostTick method checks these schedules each frame.
+    ///
+    /// Ad types:
+    /// - Banner: small ad at the bottom of the screen (always visible)
+    /// - Interstitial: full-screen ad between game actions
+    /// - Rewarded: full-screen ad the player chooses to watch for a reward
+    /// </summary>
     public sealed class GoogleAdMobProxy : BaseAdsProxy
     {
-        private const int kReloadDuration = 2;
+        private const int kReloadDuration = 2; // Seconds to wait before retrying a failed ad load
 
+        // Maps ad unit IDs to the Time.time when they should be reloaded
         private readonly Dictionary<string, float> _rewardedReloadTimeMap;
         private readonly Dictionary<string, float> _interstitialReloadTimeMap;
 
-        BannerView _bannerView;
-        InterstitialAd _interstitialAd;
-        RewardedAd _rewardedAd;
+        // Google AdMob ad objects
+        BannerView _bannerView;            // Persistent banner at screen bottom
+        InterstitialAd _interstitialAd;    // Full-screen ad between actions
+        RewardedAd _rewardedAd;            // Ad watched for rewards
 
-        private bool _isDebugBuild;
+        private bool _isDebugBuild;        // If true, use test ad IDs
 
+        // Current ad unit IDs (set based on platform and debug mode)
         private string InterstitialID;
         private string BannerID;
         private string RewardedID;
@@ -30,14 +46,20 @@ namespace Game.Managers
             _rewardedReloadTimeMap = new Dictionary<string, float>();
         }
 
+        /// <summary>
+        /// Initializes the AdMob SDK. MobileAds.Initialize is asynchronous --
+        /// it calls the callback when the SDK is ready to serve ads.
+        /// </summary>
         public override void Initialize()
         {
             base.Initialize();
 
             _isDebugBuild = GameConstants.IsDebugBuild();
 
+            // Select the correct ad IDs based on platform (iOS/Android) and build type (debug/release)
             GetIDs(out InterstitialID, out BannerID, out RewardedID);
 
+            // Initialize the AdMob SDK (async -- callback fires when ready)
             MobileAds.Initialize(initStatus => { OnSdkInitializedEvent(); });
         }
 
@@ -46,8 +68,16 @@ namespace Game.Managers
             base.Dispose();
         }
 
+        /// <summary>
+        /// Selects ad unit IDs based on the current platform and build type.
+        /// Debug builds use Google's test IDs (which serve test ads and don't violate policies).
+        /// Production builds use real IDs from the AdMob dashboard.
+        ///
+        /// 'out' parameters allow this method to return multiple values.
+        /// </summary>
         private void GetIDs(out string interstitialID, out string bannerID, out string rewardedID)
         {
+            // Default to iOS test IDs
             interstitialID = AdsConstants.AdMobInterstitialIDiOSTest;
             bannerID = AdsConstants.AdMobBannerIDiOSTest;
             rewardedID = AdsConstants.AdMobRewardedIDiOSTest;
@@ -82,16 +112,25 @@ namespace Game.Managers
 
         private void OnSdkInitializedEvent()
         {
-            INITIALIZED.SafeInvoke();
+            INITIALIZED.SafeInvoke(); // Notify listeners that ads are ready
         }
 
+        /// <summary>
+        /// Called every frame after Update. Checks if any ads are scheduled for reload
+        /// and loads them when their scheduled time arrives.
+        ///
+        /// This retry mechanism ensures ads keep loading even after failures,
+        /// with a short delay (kReloadDuration) between attempts.
+        /// </summary>
         public override void OnPostTick()
         {
+            // Skip if nothing is scheduled for reload
             if (_interstitialReloadTimeMap.Count + _rewardedReloadTimeMap.Count == 0)
                 return;
 
             try
             {
+                // Check and reload rewarded ads
                 var keys = new List<string>(_rewardedReloadTimeMap.Keys);
                 foreach (var key in keys)
                 {
@@ -100,27 +139,29 @@ namespace Game.Managers
                         _rewardedReloadTimeMap.Remove(key);
                         if (_rewardedAd != null)
                         {
-                            _rewardedAd.Destroy();
+                            _rewardedAd.Destroy(); // Clean up the old ad object
                             _rewardedAd = null;
                         }
                         Debug.Log("Loading rewarded ad. " + Time.time);
                         var adRequest = new AdRequest();
+                        // RewardedAd.Load is async -- callback fires when the ad is ready or fails
                         RewardedAd.Load(key, adRequest, (RewardedAd ad, LoadAdError error) =>
                         {
                             if (error != null || ad == null)
                             {
                                 Debug.LogError("Rewarded ad failed to load an ad with error : " + error);
-                                OnRewardedAdLoadFailedEvent(key);
+                                OnRewardedAdLoadFailedEvent(key); // Schedule retry
                                 return;
                             }
                             Debug.Log("Rewarded ad loaded with response : " + ad.GetResponseInfo());
                             _rewardedAd = ad;
                             OnRewardedAdLoadedEvent();
-                            RegisterEventHandlers(ad);
+                            RegisterEventHandlers(ad); // Subscribe to ad lifecycle events
                         });
                     }
                 }
 
+                // Check and reload interstitial ads (same pattern as rewarded)
                 keys = new List<string>(_interstitialReloadTimeMap.Keys);
                 foreach (var key in keys)
                 {
@@ -158,7 +199,12 @@ namespace Game.Managers
 
 
 
-        //banner
+        // ---- Banner Ad Methods ----
+
+        /// <summary>
+        /// Loads a banner ad at the bottom of the screen.
+        /// BannerView is a persistent ad view -- once created, it stays until destroyed.
+        /// </summary>
         public override void LoadBanner()
         {
             var key = BannerID;
@@ -170,7 +216,7 @@ namespace Game.Managers
             var adRequest = new AdRequest();
             Debug.Log("Loading banner.");
             _bannerView.LoadAd(adRequest);
-            HideBanner();
+            HideBanner(); // Start hidden, show when ready
         }
 
         public override void ShowBanner()
@@ -191,6 +237,7 @@ namespace Game.Managers
             }
         }
 
+        /// <summary>Completely destroys the banner view and frees its resources.</summary>
         public override void UnloadBanner()
         {
             if (_bannerView != null)
@@ -203,20 +250,26 @@ namespace Game.Managers
 
 
 
-        //interstitial
+        // ---- Interstitial Ad Methods ----
+
+        /// <summary>
+        /// Schedules an interstitial ad to load. The actual loading happens in OnPostTick
+        /// when the scheduled time arrives (immediately, since we set time to Time.time).
+        /// </summary>
         public override void LoadInterstitial()
         {
             var key = InterstitialID;
             if (string.IsNullOrEmpty(key)) return;
-            _interstitialReloadTimeMap[key] = Time.time;
+            _interstitialReloadTimeMap[key] = Time.time; // Schedule for immediate load
         }
 
+        /// <summary>Shows the interstitial if it's loaded and ready.</summary>
         public override void ShowInterstitial()
         {
             if (_interstitialAd != null && _interstitialAd.CanShowAd())
             {
                 Debug.Log("Showing interstitial ad.");
-                ON_INTERSTITIAL_SHOW.SafeInvoke();
+                ON_INTERSTITIAL_SHOW.SafeInvoke(); // Notify listeners before showing
                 _interstitialAd.Show();
             }
             else
@@ -229,42 +282,43 @@ namespace Game.Managers
         {
         }
 
+        /// <summary>On load failure, schedule a retry after kReloadDuration seconds.</summary>
         private void OnInterstitialAdLoadFailedEvent(string key)
         {
             _interstitialReloadTimeMap[key] = Time.time + kReloadDuration;
         }
 
+        /// <summary>
+        /// Registers event handlers for an interstitial ad's lifecycle.
+        /// These are callback-based events provided by the AdMob SDK.
+        /// Lambda syntax (=>) creates inline anonymous functions.
+        /// </summary>
         private void RegisterEventHandlers(InterstitialAd ad)
         {
-            // Raised when the ad is estimated to have earned money.
             ad.OnAdPaid += (AdValue adValue) =>
             {
                 Debug.Log(String.Format("Interstitial ad paid {0} {1}.",
                     adValue.Value,
                     adValue.CurrencyCode));
             };
-            // Raised when an impression is recorded for an ad.
             ad.OnAdImpressionRecorded += () =>
             {
                 Debug.Log("Interstitial ad recorded an impression.");
             };
-            // Raised when a click is recorded for an ad.
             ad.OnAdClicked += () =>
             {
                 Debug.Log("Interstitial ad was clicked.");
             };
-            // Raised when an ad opened full screen content.
             ad.OnAdFullScreenContentOpened += () =>
             {
                 Debug.Log("Interstitial ad full screen content opened.");
             };
-            // Raised when the ad closed full screen content.
+            // When the ad is closed, reload a new one for next time
             ad.OnAdFullScreenContentClosed += () =>
             {
                 Debug.Log("Interstitial ad full screen content closed.");
                 OnInterstitialHiddenEvent();
             };
-            // Raised when the ad failed to open full screen content.
             ad.OnAdFullScreenContentFailed += (AdError error) =>
             {
                 Debug.LogError("Interstitial ad failed to open full screen content with error : "
@@ -272,12 +326,13 @@ namespace Game.Managers
             };
         }
 
+        /// <summary>Called when user closes the interstitial. Notifies listeners and reloads.</summary>
         private void OnInterstitialHiddenEvent()
         {
             try
             {
-                ON_INTERSTITIAL_WATCHED.SafeInvoke();
-                LoadInterstitial();
+                ON_INTERSTITIAL_WATCHED.SafeInvoke(); // Notify game logic
+                LoadInterstitial();                    // Pre-load the next one
             }
             catch (Exception e)
             {
@@ -287,7 +342,9 @@ namespace Game.Managers
 
 
 
-        //rewarded
+        // ---- Rewarded Ad Methods ----
+
+        /// <summary>Schedules a rewarded ad to load (same pattern as interstitial).</summary>
         public override void LoadRewarded()
         {
             var key = RewardedID;
@@ -295,6 +352,10 @@ namespace Game.Managers
             _rewardedReloadTimeMap[key] = Time.time;
         }
 
+        /// <summary>
+        /// Shows the rewarded ad if loaded. The reward callback fires when the user
+        /// finishes watching (the ad.Show callback receives the Reward object).
+        /// </summary>
         public override void ShowRewarded()
         {
             if (_rewardedAd != null && _rewardedAd.CanShowAd())
@@ -313,37 +374,32 @@ namespace Game.Managers
             }
         }
 
+        /// <summary>Registers lifecycle event handlers for a rewarded ad.</summary>
         private void RegisterEventHandlers(RewardedAd ad)
         {
-            // Raised when the ad is estimated to have earned money.
             ad.OnAdPaid += (AdValue adValue) =>
             {
                 Debug.Log(String.Format("Rewarded ad paid {0} {1}.",
                     adValue.Value,
                     adValue.CurrencyCode));
             };
-            // Raised when an impression is recorded for an ad.
             ad.OnAdImpressionRecorded += () =>
             {
                 Debug.Log("Rewarded ad recorded an impression.");
             };
-            // Raised when a click is recorded for an ad.
             ad.OnAdClicked += () =>
             {
                 Debug.Log("Rewarded ad was clicked.");
             };
-            // Raised when the ad opened full screen content.
             ad.OnAdFullScreenContentOpened += () =>
             {
                 Debug.Log("Rewarded ad full screen content opened.");
             };
-            // Raised when the ad closed full screen content.
             ad.OnAdFullScreenContentClosed += () =>
             {
                 Debug.Log("Rewarded ad full screen content closed.");
                 OnRewardedAdHiddenEvent();
             };
-            // Raised when the ad failed to open full screen content.
             ad.OnAdFullScreenContentFailed += (AdError error) =>
             {
                 Debug.LogError("Rewarded ad failed to open full screen content with error : "
@@ -355,22 +411,24 @@ namespace Game.Managers
         {
         }
 
+        /// <summary>Called when user closes the rewarded ad. Notifies listeners and reloads.</summary>
         private void OnRewardedAdHiddenEvent()
         {
             try
             {
-                ON_REWARDED_WATCHED.SafeInvoke();
-                LoadRewarded();
+                ON_REWARDED_WATCHED.SafeInvoke(); // Notify game logic to grant the reward
+                LoadRewarded();                    // Pre-load the next one
             }
             catch (Exception e)
             {
                 Log.Exception(e);
             }
         }
+
+        /// <summary>On load failure, schedule a retry after kReloadDuration seconds.</summary>
         private void OnRewardedAdLoadFailedEvent(string key)
         {
             _rewardedReloadTimeMap[key] = Time.time + kReloadDuration;
         }
     }
 }
-
