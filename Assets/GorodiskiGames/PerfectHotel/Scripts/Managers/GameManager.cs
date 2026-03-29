@@ -176,7 +176,7 @@ namespace Game
         {
             foreach (var entity in Entities)
             {
-                if (entity != null && Vector3.Distance(entity.Transform.position, Player.View.transform.position) < radius)
+                if (entity != null && (entity.Transform.position - Player.View.transform.position).sqrMagnitude < radius * radius)
                     return entity;
             }
             return null;

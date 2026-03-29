@@ -35,9 +35,9 @@ namespace Game.Level.Elevator
 
         private void OnSecondTick()
         {
-            float distance = Vector3.Distance(_gameManager.Player.View.transform.position, _elevator.View.transform.position);
+            float sqrDistance = (_gameManager.Player.View.transform.position - _elevator.View.transform.position).sqrMagnitude;
 
-            if (distance < _openDoorDistance) _elevator.View.OpenDoor();
+            if (sqrDistance < _openDoorDistance * _openDoorDistance) _elevator.View.OpenDoor();
             else _elevator.View.CloseDoor();
         }
     }

@@ -26,7 +26,7 @@ namespace Game.Level.Loader.LoaderStates
 
         private void OnTick()
         {
-            if (Vector3.Distance(_loader.View.UnitView.transform.position, _endPosition) > 0.05f) return;
+            if ((_loader.View.UnitView.transform.position - _endPosition).sqrMagnitude > 0.0025f) return;
 
             OnReachDistance();
         }

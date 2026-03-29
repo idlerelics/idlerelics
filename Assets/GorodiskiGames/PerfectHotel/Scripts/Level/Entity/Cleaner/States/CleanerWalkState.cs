@@ -63,7 +63,7 @@ namespace Game.Level.Cleaner
         private void OnTick()
         {
             // "return" exits early -- the cleaner hasn't arrived yet, keep walking
-            if (Vector3.Distance(_cleaner.View.UnitView.transform.position, _endPosition) > 0.05f) return;
+            if ((_cleaner.View.UnitView.transform.position - _endPosition).sqrMagnitude > 0.0025f) return;
 
             OnReachDistance();
         }

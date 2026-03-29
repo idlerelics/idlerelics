@@ -44,8 +44,7 @@ namespace Game.Level.Cash.States
             _cash.View.transform.position = Vector3.Lerp(_startPosition, _endPosition, _timeElapsed / _flyTime);
             _timeElapsed += Time.deltaTime;
 
-            float distance = Vector3.Distance(_cash.View.transform.position, _endPosition);
-            if (distance > 0.05f) return; // Still flying
+            if ((_cash.View.transform.position - _endPosition).sqrMagnitude > 0.0025f) return; // Still flying
 
             // Snap to exact position and let the subclass handle what happens next
             _cash.View.transform.position = _endPosition;

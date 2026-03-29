@@ -71,7 +71,7 @@ namespace Game.Level.Unit
         private void OnTick()
         {
             // Wait until the unit is close enough to the cabine
-            if (Vector3.Distance(_unit.View.transform.position, _endPosition) > _openDoorDistance) return;
+            if ((_unit.View.transform.position - _endPosition).sqrMagnitude > _openDoorDistance * _openDoorDistance) return;
 
             // Open the cabine door as the unit approaches
             _cabine.View.OpenDoor();

@@ -38,9 +38,7 @@ namespace Game.Level.Cash.States
             _cash.View.transform.position = Vector3.Lerp(_startPosition, targetPosition, _timeElapsed / _flyTime);
             _timeElapsed += Time.deltaTime;
 
-            // When close enough, trigger removal (cash is collected)
-            float distance = Vector3.Distance(_cash.View.transform.position, targetPosition);
-            if (distance > 0.05f) return;
+            if ((_cash.View.transform.position - targetPosition).sqrMagnitude > 0.0025f) return;
 
             _cash.FireRemoveCash(); // Notify the system to add the cash value and destroy this object
         }

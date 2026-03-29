@@ -30,7 +30,7 @@ namespace Game.Level.Unit
 
         private void OnTick()
         {
-            if (Vector3.Distance(_unit.View.transform.position, _endPosition) > 0.05f) return;
+            if ((_unit.View.transform.position - _endPosition).sqrMagnitude > 0.0025f) return;
 
             OnReachDistance();
         }

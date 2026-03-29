@@ -56,10 +56,7 @@ namespace Game.Level.Inventory.InventoryStates
             _inventory.View.Position = Vector3.Lerp(_startPosition, _endPosition, _timeElapsed / _flyTime);
             _timeElapsed += Time.deltaTime; // Accumulate elapsed time
 
-            // Check if close enough to destination (using distance threshold instead of exact equality
-            // because floating-point math may never produce an exact match)
-            float distance = Vector3.Distance(_inventory.View.transform.position, _endPosition);
-            if (distance > 0.05f) return; // Not there yet, keep flying
+            if ((_inventory.View.transform.position - _endPosition).sqrMagnitude > 0.0025f) return; // Not there yet, keep flying
 
             // Snap to exact position and notify that the flight is complete
             _inventory.View.transform.position = _endPosition;

@@ -130,9 +130,8 @@ namespace Game.Modules.CashModule
                 // Check each cash pile to see if the player is within collection range
                 foreach (var item in _itemsMap.Keys)
                 {
-                    // Vector3.Distance calculates the straight-line distance between two 3D points
-                    float distance = Vector3.Distance(item.Transform.position, _gameManager.Player.View.Position);
-                    if (distance < _cashPileRadius)
+                    float sqrDistance = (item.Transform.position - _gameManager.Player.View.Position).sqrMagnitude;
+                    if (sqrDistance < _cashPileRadius * _cashPileRadius)
                     {
                         PlayerOnItem(item); // Player is close enough -- collect the cash!
                     }
