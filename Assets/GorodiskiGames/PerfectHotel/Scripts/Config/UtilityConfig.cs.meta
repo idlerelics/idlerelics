@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 1a61b6457a783428ca1d11a664eb2a8a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Config/UtilityConfig.cs
+  uploadId: 886778

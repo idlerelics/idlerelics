@@ -1,0 +1,191 @@
+PerfectHotel - Architecture Summary
+===================================
+
+OVERVIEW
+--------
+PerfectHotel is a Unity game project built with a modular, state based architecture
+using custom dependency injection and MVC like patterns. The codebase emphasizes
+separation of concerns, clear gameplay flow, and designer friendly configuration.
+
+CORE ARCHITECTURE PATTERNS
+--------------------------
+
+1. STATE MACHINE PATTERN
+   - GameStateManager manages high level game states
+   - Main state flow GameInitializeState -> GameLoadLevelState -> GamePlayState
+   - Game.Core.StateManager.StateManager and Game.Core.StateManager.State provide
+     a reusable state machine base
+   - Gameplay entities use dedicated state machines under Level namespaces,
+     for example Player, Room, Cleaner, Loader, Elevator, Toilet and Utility
+
+2. DEPENDENCY INJECTION Custom system
+   - Context is a lightweight service container for dependency registration
+   - Injector performs field based injection via Inject attributes
+   - Context.Install is used to register services and scene objects
+     followed by Context.ApplyInstall to perform injection
+   - Used by managers, modules, states and controllers to keep coupling low
+     and initialization centralized
+
+3. MODEL VIEW CONTROLLER MVC like
+   - Models plain and observable classes holding game data such as GameModel,
+     PlayerModel and entity specific models
+   - Views Unity MonoBehaviour components such as PlayerView, RoomView,
+     ReceptionView, ToiletView, UtilityView, module views and HUD views
+   - Controllers and logic classes such as PlayerController, RoomController,
+     EntityController and GameManager connect models and views and coordinate behaviour
+   - Pattern is applied across player, hotel entities, customer units,
+     camera and UI systems
+
+4. OBSERVER PATTERN
+   - Core.Observable provides observer based notifications
+   - Observers implement IObserver and react to model changes
+   - Used for reactive updates in data and UI related flows
+
+5. MODULE SYSTEM
+   - Features are organized into independent modules inheriting from Game.Level.Module
+   - Each module encapsulates related behaviour, initialization and disposal
+   - Gameplay modules are created and initialized in GamePlayState
+   - Active modules include
+     - ReceptionModule
+     - EntityModule
+     - ToiletModule
+     - UtilityModule
+     - CashModule
+     - UISpritesModule
+     - UINotificationModule
+
+6. UI MEDIATOR AND HUD PATTERN
+   - HudManager manages UI screen and HUD lifecycles
+   - Core UI base classes include BaseHud, Mediator and BehaviourWithModel
+   - Per screen mediators such as GamePlayHudMediator, PurchaseHudMediator,
+     SplashScreenHudMediator, SettingsHudMediator, HotelsHudMediator,
+     PlayersHudMediator and ShopHudMediator bridge UI views and game logic
+   - HUDs can be shown as single or additional overlays via HudManager API
+
+KEY COMPONENTS
+--------------
+
+ENTRY POINT
+- GameStartBehaviour main MonoBehaviour entry point
+  - Creates a root Context and Timer
+  - Registers and installs core services Injector, GameStateManager, HudManager,
+    ResourcesManager, AdsManager, IAPManager, LoginManager and attached components
+  - Applies dependency injection
+  - Starts the game state machine with GameInitializeState
+
+MANAGERS cross cutting concerns
+- GameManager high level gameplay orchestration and access to GameModel
+- HudManager registering, showing and hiding HUDs and popups
+- ResourcesManager helper wrapper for Resources loading
+- AdsManager advertisement integration through provider specific proxies
+- IAPManager in app purchase initialization, catalog wiring and purchase handling
+- LoginManager daily login progression based on date checks
+
+DOMAIN MODEL
+------------
+- GameModel
+  - Persistent game data player, cash, current hotel, no ads flag,
+    inventory and joystick visibility
+  - Stored as JSON in PlayerPrefs using JsonUtility
+  - Inherits from Observable and can notify observers on changes
+  - Responsible for load, defaults from GameConfig, save and cleanup
+- Additional models
+  - PlayerModel and entity models for rooms, areas, toilets, utility,
+    reception, cleaners, loaders and other level systems
+
+ENTITIES WITH STATE MACHINES
+----------------------------
+- PlayerController
+  - Owns a PlayerModel and PlayerView
+  - Uses player states such as PlayerIdleState, PlayerWalkState,
+    PlayerItemState, PlayerReceptionState and PlayerPauseState
+- RoomController
+  - Uses room states such as RoomIdleState, RoomUsedState,
+    RoomReadyToPurchaseState and RoomUpdateState
+- CleanerController
+  - Uses cleaner states such as CleanerHiddenState, CleanerIdleState,
+    CleanerWalkState and CleanerReadyToPurchaseState
+- LoaderController
+  - Uses loader states such as LoaderIdleState, LoaderWalkHomeState,
+    LoaderWalkToItemState and LoaderReadyToPurchaseState
+- Other entity controllers
+  - ElevatorController, ToiletController, UtilityController,
+    AreaController and ReceptionController with dedicated states
+- Camera
+  - CameraController follows the player and manages gameplay camera behaviour
+
+MODULES
+-------
+- ReceptionModule controls reception related runtime behaviour and hookups
+- EntityModule creates and manages level entities and progression hooks
+- ToiletModule manages toilet systems and related interactions
+- UtilityModule handles utility entity setup and state coordination
+- CashModule handles cash piles, fly animations and transaction effects
+- UISpritesModule updates sprite based UI feedback and icon states
+- UINotificationModule handles in world and HUD notifications
+- Modules are initialized in GamePlayState and disposed on state exit
+
+CONFIGURATION SYSTEM
+--------------------
+- ScriptableObject based configs under Scripts/Config and Resources
+  - GameConfig global defaults, interaction radiuses, player settings,
+    hotel map, attributes, ads provider and shop product IAP catalog
+  - Additional configs per domain area for room, area, reception, cleaner,
+    loader, toilet, utility and shop products
+- GameConfig.Load loads the main config from Resources and GameConfig.asset
+- Configuration is used by
+  - GameInitializeState startup initialization, ads and IAP setup
+  - GameLoadLevelState current hotel scene selection
+  - GamePlayState, GameManager and controllers for runtime balance and behaviour
+
+THIRD PARTY INTEGRATIONS
+------------------------
+- DOTween
+  - Used for UI and gameplay animations
+- Google Mobile Ads AdMob
+  - Used by GoogleAdMobProxy under AdsManager
+- Unity IAP and Unity Services Core
+  - Purchase initialization and transaction flows through IAPManager
+- TextMesh Pro
+  - UI text rendering across HUDs and views
+- Joystick plugin
+  - On screen movement controls for player input
+
+DIRECTORY STRUCTURE
+-------------------
+- Scenes   hotel gameplay scenes loaded additively by build index
+- Resources and GameConfig.asset   main ScriptableObject configuration
+- ResourcesStatic and Prefabs   level, UI and art prefabs and assets
+- Scripts
+  - Core              dependency injection, state manager, observer, timer, UI base
+  - States            game level state flow Initialize, LoadLevel, Play
+  - Managers          cross cutting managers Game, HUD, Resources, Ads, IAP, Login
+  - Domain            persistent game model and related data
+  - Modules           gameplay feature modules Reception, Entity, Toilet, Utility, Cash, UI
+  - Level             entities, controllers, models, states, units and gameplay logic
+  - Camera            camera controller and camera related logic
+  - UI                HUD views, mediators, widgets and gameplay UI bindings
+  - Config            configuration classes and ScriptableObject types
+  - Utils             utility classes, extensions and helper logic
+  - GameStartBehaviour.cs  entry point MonoBehaviour
+
+ARCHITECTURAL STRENGTHS
+-----------------------
++ Clear separation of concerns through states, modules and managers
++ Modular, feature based organization that maps directly to hotel gameplay systems
++ Custom dependency injection keeps initialization explicit and centralized
++ State machines for both global game flow and entities ensure predictable behaviour
++ ScriptableObject configs and persistent model enable data driven iteration
++ Reusable UI mediator and HUD system keeps presentation decoupled from game logic
+
+TECHNICAL NOTES
+---------------
+- Custom dependency injection Context and Injector with attribute based
+  field injection using Inject attributes
+- Timer system Game.Core.Timer drives Update, LateUpdate and FixedUpdate callbacks
+  and provides tick based events ONE_SECOND_TICK and others
+- JSON persistence uses JsonUtility and PlayerPrefs in GameModel
+- Game scenes are loaded additively by GameLoadLevelState based on saved hotel index
+- Ads provider is selected by platform and config AdsProviderEditor or AdsProviderMobile
+- IAP catalog is dynamically built from GameConfig.ShopProductIAPMap
+

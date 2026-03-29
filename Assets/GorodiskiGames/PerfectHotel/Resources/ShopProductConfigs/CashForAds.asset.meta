@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b9fd6b36754b84cb2a5ff0c2d8404fe3
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Resources/ShopProductConfigs/CashForAds.asset
+  uploadId: 886778

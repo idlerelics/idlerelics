@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 690363e5e9f1e4bd785472a30b17b07e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Modules/ReceptionModule/ReceptionModule.cs
+  uploadId: 886778

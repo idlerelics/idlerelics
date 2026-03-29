@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b58a3e9f4762e433d894f42405e6c31d
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Documentation/ARCHITECTURE_SUMMARY.txt
+  uploadId: 886778

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 72a51b276647e42d794f32d5cd06469f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Level/Inventory/States/InventoryIdleState.cs
+  uploadId: 886778

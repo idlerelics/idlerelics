@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: a75d3562e860d43e58650d421d68267e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/UI/Hud/PlayersHud/PlayerSlotView.cs
+  uploadId: 886778

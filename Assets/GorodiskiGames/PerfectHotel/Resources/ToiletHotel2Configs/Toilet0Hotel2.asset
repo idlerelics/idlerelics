@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc779c43ef9f44705b86e7428c3cc115, type: 3}
+  m_Name: Toilet0Hotel2
+  m_EditorClassIdentifier: 
+  Number: 0
+  Area: 1
+  PricePurchase: 50
+  TargetPurchaseProgress: 6
+  PurchaseProgressReward: 3
+  StayFee: 40
+  StayDuration: 2

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 266c19b0c01efe34282dd90a5403e479
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Plugins/Joystick/Scripts/Joystick.cs
+  uploadId: 886778

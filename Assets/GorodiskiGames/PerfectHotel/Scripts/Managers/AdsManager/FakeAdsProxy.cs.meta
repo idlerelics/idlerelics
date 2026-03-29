@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: c9857342d16b3694e94f33b7ed0cbd6b
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Managers/AdsManager/FakeAdsProxy.cs
+  uploadId: 886778

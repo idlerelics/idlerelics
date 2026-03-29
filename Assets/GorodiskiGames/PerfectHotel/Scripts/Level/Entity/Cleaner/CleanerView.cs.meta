@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: dbc1a42e2e47b44ad9c290f2bfb58cf4
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Level/Entity/Cleaner/CleanerView.cs
+  uploadId: 886778

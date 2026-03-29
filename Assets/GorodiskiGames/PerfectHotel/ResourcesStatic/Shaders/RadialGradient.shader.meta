@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 2bd4e384ded8742dab6d2c8c13c0a624
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Shaders/RadialGradient.shader
+  uploadId: 886778

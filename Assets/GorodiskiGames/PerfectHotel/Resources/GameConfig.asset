@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40078fc06dfe6be42a285205b7bb70a5, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  DefaultCash: 50
+  DefaultHotel: 1
+  CashPileRadius: 1.5
+  ReceptionItemRadius: 0.75
+  BuyUpdateRadius: 1
+  RoomItemRadius: 0.75
+  ToiletItemRadius: 0.5
+  ToiletPaperFlyTime: 0.2
+  ToiletVisitsCountMax: 2
+  UtilityItemRadius: 0.5
+  PlayerInventoriesMax: 3
+  ElevatorItemRadius: 1
+  EntityRadius: 3
+  CustomerRotationSpeed: 10
+  CustomerWalkSpeed: 3
+  SplashScreenDurationMobile: 1.5
+  SplashScreenDurationEditor: 0.1
+  _playerConfigs:
+  - {fileID: 11400000, guid: 2baebe73fc38046f6bde8fb3bde109f4, type: 2}
+  - {fileID: 11400000, guid: 6979f94d3c6f64259a6ae3dd417561c0, type: 2}
+  - {fileID: 11400000, guid: 18ab9af8591084edc80529742650c3e6, type: 2}
+  - {fileID: 11400000, guid: 5bd5443d8d1894f4eba1efd6e10ef987, type: 2}
+  - {fileID: 11400000, guid: 802311f1702694e609a4ec75027fd308, type: 2}
+  _attributeConfigs:
+  - {fileID: 11400000, guid: ea74a7df73e2c4b27872f14abb376d9a, type: 2}
+  - {fileID: 11400000, guid: 06c3da1f8aa0744f79042b45691f713e, type: 2}
+  - {fileID: 11400000, guid: 507b14009b01542d7a1488255e8b992e, type: 2}
+  _hotels:
+  - SceneIndex: 1
+    Icon: {fileID: 21300000, guid: 800c98e5b79b244f3b55114c14b471fa, type: 3}
+    Label: MARRION
+  - SceneIndex: 2
+    Icon: {fileID: 21300000, guid: 7516700ca74eb4f0687070b13bbde867, type: 3}
+    Label: CHILTON
+  AdsProviderEditor: 1
+  AdsProviderMobile: 1
+  AllScenariosDurationHrs: 24
+  NoScenarioDurationMinutes: 1
+  _shopProductIAPConfigs:
+  - {fileID: 11400000, guid: d932bb7082d0a496ab62f7f7e2446e4d, type: 2}

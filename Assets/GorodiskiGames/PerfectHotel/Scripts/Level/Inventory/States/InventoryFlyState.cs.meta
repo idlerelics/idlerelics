@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 5ee4ec0a0957d4a42a40d0575d5e6193
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Level/Inventory/States/InventoryFlyState.cs
+  uploadId: 886778

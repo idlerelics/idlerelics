@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: dd23b95c5c3e74dd1be419a68d684245
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/UI/Huds/RoomSlotPrefab.prefab
+  uploadId: 886778

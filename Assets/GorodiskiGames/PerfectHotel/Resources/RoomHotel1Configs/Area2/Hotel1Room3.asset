@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e76dbdb8ac7d4717b98768c7e369afe, type: 3}
+  m_Name: Hotel1Room3
+  m_EditorClassIdentifier: 
+  Number: 3
+  Area: 2
+  PricePurchase: 380
+  TargetPurchaseProgress: 27
+  PurchaseProgressReward: 3
+  UpdateProgressReward: 3
+  StayDuration: 3
+  Lvls:
+  - PriceUpdate: 0
+    TargetUpdateProgress: 0
+    CleaningTime: 1
+    EntranceFee: 10
+    StayFee: 2
+  - PriceUpdate: 530
+    TargetUpdateProgress: 39
+    CleaningTime: 0.75
+    EntranceFee: 30
+    StayFee: 5
+  - PriceUpdate: 720
+    TargetUpdateProgress: 48
+    CleaningTime: 0.5
+    EntranceFee: 50
+    StayFee: 8

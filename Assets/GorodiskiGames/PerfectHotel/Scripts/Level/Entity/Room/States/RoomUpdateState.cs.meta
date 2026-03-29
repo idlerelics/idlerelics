@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f4fea3faa540442df82f91e139f88330
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Level/Entity/Room/States/RoomUpdateState.cs
+  uploadId: 886778

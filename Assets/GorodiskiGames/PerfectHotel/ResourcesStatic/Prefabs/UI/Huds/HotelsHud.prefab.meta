@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 1b649e210842a40a4b0ddd57104ad6cb
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/UI/Huds/HotelsHud.prefab
+  uploadId: 886778

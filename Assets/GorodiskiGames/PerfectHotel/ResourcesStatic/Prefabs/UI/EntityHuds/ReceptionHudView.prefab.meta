@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 245ec7c94552347cebf581bc03d4e042
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/UI/EntityHuds/ReceptionHudView.prefab
+  uploadId: 886778

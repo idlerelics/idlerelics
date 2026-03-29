@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: bfc2b83543fe044f09796c3ea67d0078
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/UI/Hud/SplashScreenHudView.cs
+  uploadId: 886778

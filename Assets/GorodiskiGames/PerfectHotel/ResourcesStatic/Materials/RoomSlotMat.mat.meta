@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d4bd2e32ef0134b24926edfe27c13927
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Materials/RoomSlotMat.mat
+  uploadId: 886778

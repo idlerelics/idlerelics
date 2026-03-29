@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c06c1b45f0660413587ab42d7a55a4f1
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/UI/Buttons/ButtonRestorePurchases.prefab
+  uploadId: 886778

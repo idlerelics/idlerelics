@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 2120ee002ff61447ab9405d378606766
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/UI/Huds/RoomUpgradeHud.prefab
+  uploadId: 886778

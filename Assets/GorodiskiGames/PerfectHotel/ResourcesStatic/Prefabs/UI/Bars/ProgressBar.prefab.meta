@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f3b69630fa7ef47439fc38d2414dec10
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/UI/Bars/ProgressBar.prefab
+  uploadId: 886778

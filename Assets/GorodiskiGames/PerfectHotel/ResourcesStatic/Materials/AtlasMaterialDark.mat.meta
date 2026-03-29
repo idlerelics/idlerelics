@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b77356654398a410ba88b2d9e1d044af
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Materials/AtlasMaterialDark.mat
+  uploadId: 886778

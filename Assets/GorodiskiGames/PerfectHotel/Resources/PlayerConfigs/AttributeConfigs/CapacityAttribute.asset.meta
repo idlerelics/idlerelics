@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ea74a7df73e2c4b27872f14abb376d9a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Resources/PlayerConfigs/AttributeConfigs/CapacityAttribute.asset
+  uploadId: 886778

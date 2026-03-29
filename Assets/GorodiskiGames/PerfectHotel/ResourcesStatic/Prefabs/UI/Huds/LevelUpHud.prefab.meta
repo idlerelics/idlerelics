@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d9e3cd3d89e8446bd9dbdc04f03636f8
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/UI/Huds/LevelUpHud.prefab
+  uploadId: 886778

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c57a9157bd4142aa88199e41eb455be, type: 3}
+  m_Name: 2Gustav
+  m_EditorClassIdentifier: 
+  Index: 2
+  Sex: 0
+  LabelKey: GUSTAV
+  Icon: {fileID: 21300000, guid: 318a36bda6dbb4af1a0cc287249efb32, type: 3}
+  Body: {fileID: -7885224157226008695, guid: a169bdcf3aeb9432e82fa0a00c1c51f7, type: 3}
+  Infos:
+  - Type: 0
+    AddValue: 2
+  - Type: 1
+    AddValue: 0.15
+  - Type: 2
+    AddValue: 1.5
+  UnlockConditionConfig: {fileID: 11400000, guid: 678d16646a7614fb48938e24d801292c,
+    type: 2}

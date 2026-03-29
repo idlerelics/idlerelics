@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d932bb7082d0a496ab62f7f7e2446e4d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Resources/ShopProductConfigs/NoAds.asset
+  uploadId: 886778

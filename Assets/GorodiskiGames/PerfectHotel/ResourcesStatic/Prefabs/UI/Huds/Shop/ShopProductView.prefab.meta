@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 929133a2f45e540f1aa686ddbcd33e94
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/UI/Huds/Shop/ShopProductView.prefab
+  uploadId: 886778

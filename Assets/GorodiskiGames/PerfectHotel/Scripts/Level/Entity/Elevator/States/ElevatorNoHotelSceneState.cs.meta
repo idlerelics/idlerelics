@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 6c70b7c2bdfec42a2a7f4cd142552c48
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Level/Entity/Elevator/States/ElevatorNoHotelSceneState.cs
+  uploadId: 886778

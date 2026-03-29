@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a0b9c5f4905634684acc020b10cd4ccc
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Resources/PlayerConfigs/ConditionsConfigs/3WatchAdsConditionConfig.asset
+  uploadId: 886778

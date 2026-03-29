@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: cf81c85f95fe47e1a27f6ae460cf182c
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Plugins/TextMesh Pro/Resources/Shaders/TMP_Sprite.shader
+  uploadId: 886778

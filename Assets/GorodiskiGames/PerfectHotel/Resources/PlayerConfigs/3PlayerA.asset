@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c57a9157bd4142aa88199e41eb455be, type: 3}
+  m_Name: 3PlayerA
+  m_EditorClassIdentifier: 
+  Index: 3
+  Sex: 0
+  LabelKey: PATRICK
+  Icon: {fileID: 21300000, guid: fd620c15ee61a41df87a0cbaf94c7394, type: 3}
+  Body: {fileID: 4490045820041650077, guid: fd831f06dc38f4210a36f43a075fc3cb, type: 3}
+  Infos:
+  - Type: 0
+    AddValue: 1
+  - Type: 1
+    AddValue: 0.1
+  - Type: 2
+    AddValue: 1
+  UnlockConditionConfig: {fileID: 11400000, guid: a0b9c5f4905634684acc020b10cd4ccc,
+    type: 2}

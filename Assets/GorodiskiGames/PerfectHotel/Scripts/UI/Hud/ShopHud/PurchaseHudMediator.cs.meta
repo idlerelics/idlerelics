@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 1486a5bc60cab49369990021aaad56b8
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/UI/Hud/ShopHud/PurchaseHudMediator.cs
+  uploadId: 886778

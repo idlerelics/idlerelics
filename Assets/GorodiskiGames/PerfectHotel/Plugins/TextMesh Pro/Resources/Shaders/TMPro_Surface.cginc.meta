@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: d930090c0cd643c7b55f19a38538c162
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Plugins/TextMesh Pro/Resources/Shaders/TMPro_Surface.cginc
+  uploadId: 886778

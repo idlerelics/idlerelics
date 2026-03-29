@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: aa8d99e94b25641db8324e29be9b9efd
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Modules/UINotificationModule/UINotificationModuleView.cs
+  uploadId: 886778

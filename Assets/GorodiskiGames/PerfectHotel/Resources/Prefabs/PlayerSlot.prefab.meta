@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: dd046aed0a7a64f069ace4444559c4db
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Resources/Prefabs/PlayerSlot.prefab
+  uploadId: 886778

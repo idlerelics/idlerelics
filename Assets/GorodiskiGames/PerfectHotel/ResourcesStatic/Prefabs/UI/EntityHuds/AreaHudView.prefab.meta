@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6986f377062f742239f1dd98bb5e8949
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/UI/EntityHuds/AreaHudView.prefab
+  uploadId: 886778

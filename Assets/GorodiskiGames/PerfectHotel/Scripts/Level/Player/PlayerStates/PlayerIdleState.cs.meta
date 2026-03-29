@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 0fc312c2705da4d2393f3c71e26f6308
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 244856
+  packageName: Perfect Hotel
+  packageVersion: 1.7.3
+  assetPath: Assets/GorodiskiGames/PerfectHotel/Scripts/Level/Player/PlayerStates/PlayerIdleState.cs
+  uploadId: 886778
