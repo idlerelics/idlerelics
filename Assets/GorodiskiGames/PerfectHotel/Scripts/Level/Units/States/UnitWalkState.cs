@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.AI;
 
 namespace Game.Level.Unit
 {
@@ -16,6 +17,7 @@ namespace Game.Level.Unit
             _unit.View.Walk(0);
 
             _unit.View.NavMeshAgent.enabled = true;
+            _unit.View.NavMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
             _unit.View.NavMeshAgent.SetDestination(_endPosition);
 
             _timer.TICK += OnTick;

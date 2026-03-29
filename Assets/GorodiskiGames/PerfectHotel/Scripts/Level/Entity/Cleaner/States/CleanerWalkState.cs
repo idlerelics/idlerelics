@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Game.Level.Cleaner
 {
@@ -45,6 +46,7 @@ namespace Game.Level.Cleaner
             // Enable the NavMeshAgent so it can calculate a path through the scene
             // NavMeshAgent is Unity's built-in AI navigation component
             _cleaner.View.UnitView.NavMeshAgent.enabled = true;
+            _cleaner.View.UnitView.NavMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
             _cleaner.View.UnitView.NavMeshAgent.SetDestination(_endPosition);
             _cleaner.View.UnitView.NavMeshAgent.speed = _cleaner.Model.Speed;
 

@@ -3,6 +3,7 @@ using Game.Core;
 using Game.UI;
 using Injection;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Game.Level.Player
 {
@@ -64,6 +65,7 @@ namespace Game.Level.Player
 
             // Enable the NavMeshAgent so the player respects walkable areas
             _player.View.NavMeshAgent.enabled = true;
+            _player.View.NavMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
 
             // Cache speed values from the player model
             _walkSpeed = _player.Model.WalkSpeed;
