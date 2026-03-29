@@ -61,6 +61,10 @@ namespace Game.Modules.CashModule
         /// </summary>
         public override void Initialize()
         {
+            // FIX #7: Guard against module initialization order.
+            // CashModule depends on Reception being created first (by ReceptionModule).
+            // Without this, reordering modules in GamePlayState.InitLevelModules() causes
+            // a cryptic NullReferenceException. This assert fails early with a clear message.
             Debug.Assert(_gameManager.Reception != null, "[CashModule] Reception must be initialized before CashModule");
 
             _cashPileRadius = _config.CashPileRadius;

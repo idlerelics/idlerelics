@@ -43,6 +43,10 @@ namespace Game.Level.Entity
         public int PurchaseProgressReward;  // Reward given when purchased
         public int UpdateProgressReward;    // Reward given when upgraded
 
+        // FIX #6: Data-driven HUD labels instead of hardcoded if/else in EntityHudView.
+        // Previously EntityHudView checked EntityType to decide what text to show ("NEW AREA",
+        // "RECEPTIONIST", etc.). Now the labels live on the model — EntityHudView just reads them.
+        // New entity types get a sensible default (type name) or can set custom labels here.
         public string PurchaseLabel;       // Label shown on HUD when ready to purchase
         public string UpgradeLabel;        // Label shown on HUD when upgrading (null = use "LVL X")
 

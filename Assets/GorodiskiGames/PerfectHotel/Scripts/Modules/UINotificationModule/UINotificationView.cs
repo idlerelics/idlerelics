@@ -80,6 +80,13 @@ namespace Game.Modules.UINotificationModule
         /// Fires the ON_REMOVE event so the spawning system can recycle or destroy
         /// this notification. The "?." operator ensures no error if nobody is listening.
         /// </summary>
+        /// <summary>
+        /// FIX #1: Kill DOTween animations when pooled objects are recycled.
+        /// This view is managed by ComponentPoolFactory, which calls SetActive(false) to recycle it.
+        /// SetActive(false) triggers OnDisable. Without DOKill(), the DOMoveY and DOScale tweens
+        /// from Initialize() would keep running on the deactivated GameObject — orphaned tweens
+        /// that leak memory and cause unexpected behavior when the object is reused from the pool.
+        /// </summary>
         private void OnDisable()
         {
             _rectTransform.DOKill();

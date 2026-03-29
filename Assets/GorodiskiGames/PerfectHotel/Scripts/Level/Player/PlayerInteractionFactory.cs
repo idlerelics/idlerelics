@@ -5,9 +5,14 @@ using Game.Level.Item;
 namespace Game.Level.Player
 {
     /// <summary>
-    /// Maps ItemTypes to the PlayerState that should activate when the player
-    /// interacts with that item. New interaction types can be registered without
-    /// modifying PlayerIdleState.
+    /// FIX #5: Replace PlayerIdleState if/else chain with a factory.
+    /// Previously, PlayerIdleState had a hardcoded if/else for each ItemType (Clean,
+    /// ReceptionDesk, BuyUpdate, ShowHud). Adding a new interaction type meant modifying
+    /// PlayerIdleState every time. Now types are registered here via a dictionary, and
+    /// PlayerIdleState just calls CreateState() — open for extension, closed for modification.
+    ///
+    /// Default registrations happen in GamePlayState.Initialize().
+    /// To add a new interaction: _interactionFactory.Register(ItemType.X, item => new PlayerXState(item));
     /// </summary>
     public sealed class PlayerInteractionFactory
     {

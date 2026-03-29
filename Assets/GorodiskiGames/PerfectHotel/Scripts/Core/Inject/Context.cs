@@ -111,11 +111,11 @@ namespace Injection
         }
 
         /// <summary>
-        /// Retrieves an object of type T from the container.
-        ///
-        /// This uses "generics" -- the &lt;T&gt; is a placeholder for any type you specify when calling,
-        /// e.g., Get&lt;Timer&gt;() returns a Timer.
-        /// "where T : class" is a constraint meaning T must be a reference type (not int, float, etc.).
+        /// FIX #4: Log missing dependencies in all builds, not just editor.
+        /// Previously used #if UNITY_EDITOR, so production builds got a cryptic cast exception
+        /// with no useful message. Now Debug.LogError fires in all builds (visible in device
+        /// logs and crash reporters), followed by a clear KeyNotFoundException.
+        /// Also uses TryGetValue for single-lookup efficiency instead of ContainsKey + indexer.
         /// </summary>
         public T Get<T>() where T : class
         {
@@ -127,8 +127,7 @@ namespace Injection
         }
 
         /// <summary>
-        /// Non-generic version of Get. Takes a Type parameter instead of a generic &lt;T&gt;.
-        /// Returns "object" because the exact type isn't known at compile time.
+        /// FIX #4: Non-generic version — same fix as above.
         /// </summary>
         public object Get(Type type)
         {

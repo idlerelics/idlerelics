@@ -38,6 +38,12 @@ namespace Game.Level.Line
             return customer;
         }
 
+        /// <summary>
+        /// FIX #3: Cache dictionary keys into a list for O(n) iteration.
+        /// Previously used .ToList() in a foreach then .ElementAt(index) inside the loop.
+        /// ElementAt() on a Dictionary is O(n) per call, making the whole method O(n³).
+        /// Now keys are cached once, and direct index access gives O(n) total.
+        /// </summary>
         public void RearrangeCustomersLine()
         {
             var places = _placeUnitMap.Keys.ToList();

@@ -75,6 +75,12 @@ namespace Game.UI.Hud
         /// using SafeInvoke (a utility extension that checks for null before invoking,
         /// preventing NullReferenceException if no one is listening).
         /// </summary>
+        /// <summary>
+        /// FIX #1: Kill DOTween animations when pooled objects are recycled.
+        /// This view has up to 4 concurrent tweens (intro move + scale, then move + scale).
+        /// When returned to the pool via SetActive(false), DOKill stops them all, preventing
+        /// orphaned tweens from running on deactivated GameObjects.
+        /// </summary>
         private void OnDisable()
         {
             _rectTransform.DOKill();

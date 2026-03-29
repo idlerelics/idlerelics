@@ -27,6 +27,9 @@ namespace Game.Managers
         // Maps ad unit IDs to the Time.time when they should be reloaded
         private readonly Dictionary<string, float> _rewardedReloadTimeMap;
         private readonly Dictionary<string, float> _interstitialReloadTimeMap;
+        // FIX #2: Reusable key list to avoid per-frame allocations in OnPostTick().
+        // Previously, two new List<string> were created every frame just to iterate dictionary
+        // keys safely during modification. This cached list is cleared and refilled instead.
         private readonly List<string> _tempKeys = new List<string>();
 
         // Google AdMob ad objects

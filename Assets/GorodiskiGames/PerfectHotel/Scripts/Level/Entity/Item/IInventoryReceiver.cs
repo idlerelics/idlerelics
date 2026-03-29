@@ -4,10 +4,14 @@ using UnityEngine;
 namespace Game.Level.Item
 {
     /// <summary>
-    /// Interface for any item controller that can receive inventory deliveries
-    /// from staff (e.g., toilet cabins needing toilet paper, potion labs needing ingredients).
-    /// Implement this on new item controllers to make them work with the UtilityModule
-    /// delivery system without modifying UtilityModule code.
+    /// FIX #8: Generalize inventory delivery via interface instead of hard casts.
+    /// Previously, UtilityModule cast every DropInventory item to ItemToiletController,
+    /// assuming the only delivery target was a toilet cabin. Adding a Potion Lab or any
+    /// other facility that accepts deliveries would have crashed on that cast.
+    ///
+    /// Now UtilityModule casts to IInventoryReceiver instead. Any item controller that
+    /// implements this interface works with the delivery system automatically.
+    /// Currently implemented by: ItemToiletController.
     /// </summary>
     public interface IInventoryReceiver
     {

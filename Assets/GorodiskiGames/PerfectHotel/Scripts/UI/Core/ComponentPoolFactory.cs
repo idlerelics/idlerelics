@@ -96,7 +96,7 @@ namespace Game.UI.Pool
             var go = component.gameObject;
             if (_instances.Contains(go))
             {
-                DOTween.Kill(go.transform);
+                DOTween.Kill(go.transform); // FIX #1: Safety net — kill any active tweens before pooling
                 go.SetActive(false);
                 if (_poolStorage)
                 {
@@ -111,7 +111,7 @@ namespace Game.UI.Pool
         {
             foreach (GameObject instance in _instances)
             {
-                DOTween.Kill(instance.transform);
+                DOTween.Kill(instance.transform); // FIX #1: Safety net — kill any active tweens before pooling
                 instance.SetActive(false);
                 if (_poolStorage)
                 {
