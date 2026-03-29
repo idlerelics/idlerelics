@@ -15,7 +15,7 @@ namespace Game
         public event Action<Vector3> FLY_TO_REMOVE_CASH;
         public event Action<Vector3, int> ON_NOTIFICATION_NEED_LVL;
         public event Action ELEVATOR_PURCHASED;
-        public event Action<ItemToiletController> ON_PLAYER_TRY_DROP_INVENTORY;
+        public event Action<ItemController> ON_PLAYER_TRY_DROP_INVENTORY;
         public event Action<bool> ON_PLAYERS_HUD_OPEN;
         public event Action ON_TRY_SHOW_INTERSTITIAL;
 
@@ -54,7 +54,7 @@ namespace Game
             ELEVATOR_PURCHASED?.Invoke();
         }
 
-        public void FirePlayerTryDropInventory(ItemToiletController item)
+        public void FirePlayerTryDropInventory(ItemController item)
         {
             ON_PLAYER_TRY_DROP_INVENTORY?.Invoke(item);
         }

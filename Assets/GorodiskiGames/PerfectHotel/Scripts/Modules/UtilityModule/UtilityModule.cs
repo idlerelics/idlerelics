@@ -133,9 +133,10 @@ namespace Game.Modules.Utility
         {
             if (item.Type != ItemType.DropInventory) return;
 
-            var cabine = item as ItemToiletController;
+            var receiver = item as IInventoryReceiver;
+            if (receiver == null) return;
 
-            var targetInventory = cabine.View.TargetInventory;
+            var targetInventory = receiver.TargetInventory;
             var staffAvailableWithInventory = FindStaffAvailableWithInventory(targetInventory);
 
             if (staffAvailableWithInventory != null)
@@ -265,15 +266,16 @@ namespace Game.Modules.Utility
         {
             staff.ON_ARRIVED_TO_ITEM -= OnStaffArrivedToItem;
 
-            var item = _staffItemMap[staff] as ItemToiletController;
+            var item = _staffItemMap[staff];
+            var receiver = item as IInventoryReceiver;
             _staffItemMap.Remove(staff);
 
             var inventory = _staffWalkWithInventory[staff];
             _staffWalkWithInventory.Remove(staff);
 
-            if (!item.IsAvailable)
+            if (receiver != null && !receiver.IsAvailable)
             {
-                inventory.Fly(item.View.AimPosition, _inventoryFlyTime);
+                inventory.Fly(receiver.AimPosition, _inventoryFlyTime);
                 inventory.ON_FLY_END += OnStaffDeliveredInventory;
 
                 _inventoryItemMap.Add(inventory, item);
@@ -445,11 +447,14 @@ namespace Game.Modules.Utility
             }
         }
 
-        private void OnPlayerTryDropInventory(ItemToiletController item)
+        private void OnPlayerTryDropInventory(ItemController item)
         {
+            var receiver = item as IInventoryReceiver;
+            if (receiver == null) return;
+
             foreach (var inventory in _gameManager.Player.Model.Inventories.ToList())
             {
-                if (inventory.Type == item.View.TargetInventory)
+                if (inventory.Type == receiver.TargetInventory)
                 {
                     _gameManager.Model.InventoryTypes.Remove(inventory.Type);
                     _gameManager.Model.Save();
@@ -461,7 +466,7 @@ namespace Game.Modules.Utility
                     int inventories = _gameManager.Model.InventoryTypes.Count;
                     _gameManager.Player.View.UpdateCurrentAnimation(inventories);
 
-                    inventory.Fly(item.View.AimPosition, _inventoryFlyTime);
+                    inventory.Fly(receiver.AimPosition, _inventoryFlyTime);
                     inventory.ON_FLY_END += OnPlayerDeliveredInventory;
 
                     break;

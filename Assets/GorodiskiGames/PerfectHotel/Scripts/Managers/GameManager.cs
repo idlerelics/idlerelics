@@ -70,7 +70,7 @@ namespace Game
             add => EventBus.ELEVATOR_PURCHASED += value;
             remove => EventBus.ELEVATOR_PURCHASED -= value;
         }
-        public event Action<ItemToiletController> ON_PLAYER_TRY_DROP_INVENTORY
+        public event Action<ItemController> ON_PLAYER_TRY_DROP_INVENTORY
         {
             add => EventBus.ON_PLAYER_TRY_DROP_INVENTORY += value;
             remove => EventBus.ON_PLAYER_TRY_DROP_INVENTORY -= value;
@@ -175,7 +175,7 @@ namespace Game
         public void FireFlyToRemoveCash(Vector3 endPosition) => EventBus.FireFlyToRemoveCash(endPosition);
         public void FireNotificationNeedLvl(Vector3 itemPosition, int lvl) => EventBus.FireNotificationNeedLvl(itemPosition, lvl);
         internal void FireElevatorPurchased() => EventBus.FireElevatorPurchased();
-        public void FirePlayerTryDropInventory(ItemToiletController item) => EventBus.FirePlayerTryDropInventory(item);
+        public void FirePlayerTryDropInventory(ItemController item) => EventBus.FirePlayerTryDropInventory(item);
         public void FirePlayersHudOpen(bool value) => EventBus.FirePlayersHudOpen(value);
         public void FireTryShowInterstitial() => EventBus.FireTryShowInterstitial();
     }

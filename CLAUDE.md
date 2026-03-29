@@ -99,6 +99,7 @@ All paths relative to `Assets/GorodiskiGames/PerfectHotel/Scripts/`.
 - `ItemView`, `ItemType` enum → `Level/Entity/Item/ItemView.cs`
 - `ItemFillBarView` → `Level/Entity/Item/ItemFillBarView.cs`
 - `ItemReusableView` → `Level/Entity/Item/ItemReusableView.cs`
+- `IInventoryReceiver` → `Level/Entity/Item/IInventoryReceiver.cs` (interface for items that accept deliveries)
 
 ### Room States
 - `RoomInitializeState` → `Level/Entity/Room/States/RoomInitializeState.cs`

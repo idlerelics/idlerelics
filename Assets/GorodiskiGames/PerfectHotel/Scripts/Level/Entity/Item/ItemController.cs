@@ -1,6 +1,7 @@
 using System;
 using Core;
 using Game;
+using Game.Level.Inventory;
 using UnityEngine;
 using Utilities;
 
@@ -116,7 +117,7 @@ namespace Game.Level.Item
     /// An item for toilet cabins -- tracks how many times it has been visited
     /// and has a maximum visit count before it needs restocking.
     /// </summary>
-    public sealed class ItemToiletController : ItemController
+    public sealed class ItemToiletController : ItemController, IInventoryReceiver
     {
         public string ID;              // Unique identifier for this toilet cabin
         public float StayDuration;     // How long a unit stays in the cabin
@@ -136,6 +137,10 @@ namespace Game.Level.Item
 
         /// <summary>True if the toilet can still accept visitors (hasn't reached max visits).</summary>
         public bool IsAvailable => VisitsCount < VisitsCountMax;
+
+        // IInventoryReceiver
+        public InventoryType TargetInventory => View.TargetInventory;
+        public Vector3 AimPosition => View.AimPosition;
     }
 
     /// <summary>
