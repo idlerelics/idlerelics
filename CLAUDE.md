@@ -92,6 +92,7 @@ All paths relative to `Assets/GorodiskiGames/PerfectHotel/Scripts/`.
 - `PlayerIdleState`, `PlayerWalkState`, `PlayerFindEntityState` → `Level/Player/PlayerStates/`
 - `PlayerItemState`, `PlayerCleaningState`, `PlayerReceptionState`, `PlayerOnItemState`, `PlayerElevatorState`, `PlayerPauseState` → `Level/Player/PlayerStates/`
 - `PlayerController` → `Level/Player/PlayerController.cs`
+- `PlayerInteractionFactory` → `Level/Player/PlayerInteractionFactory.cs` (maps ItemType to PlayerState)
 
 ### Items
 - `ItemController`, `ItemRoomController`, `ItemToiletController`, `ItemReceptionController`, `ItemModel` → `Level/Entity/Item/ItemController.cs`

@@ -1,5 +1,5 @@
-using System;
 using Game.Level.Item;
+using Injection;
 
 namespace Game.Level.Player
 {
@@ -15,6 +15,8 @@ namespace Game.Level.Player
     /// </summary>
     public sealed class PlayerIdleState : PlayerFindEntityState
     {
+        [Inject] private PlayerInteractionFactory _interactionFactory;
+
         /// <summary>
         /// Called when this state becomes active.
         /// Sets up the idle animation, subscribes to events, and checks for nearby items.
@@ -68,24 +70,12 @@ namespace Game.Level.Player
         /// </summary>
         internal void FindClosestUsedItem()
         {
-            // Ask the GameManager to find the closest item within interaction range
             var item = _gameManager.FindClosestUsedItem();
-            if (item == null) return; // No item nearby, stay idle
+            if (item == null) return;
 
-            var type = item.Type;
-
-            // Switch to the correct state based on item type:
-            if (type == ItemType.Clean)
-                _player.SwitchToState(new PlayerCleaningState(item));  // Clean a room
-
-            else if (type == ItemType.ReceptionDesk)
-                _player.SwitchToState(new PlayerReceptionState(item)); // Handle reception desk
-
-            else if (type == ItemType.BuyUpdate)
-                _player.SwitchToState(new PlayerOnItemState(item));    // Purchase/upgrade
-
-            else if (type == ItemType.ShowHud)
-                _player.SwitchToState(new PlayerElevatorState(item));  // Open elevator UI
+            var state = _interactionFactory.CreateState(item);
+            if (state != null)
+                _player.SwitchToState(state);
         }
 
         /// <summary>

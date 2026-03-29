@@ -15,6 +15,7 @@ using Game.Modules.UISpritesModule;
 using Game.Modules.UINotificationModule;
 using Game.Modules.Utility;
 using Game.Modules.ToiletModule;
+using Game.Level.Item;
 
 namespace Game.States
 {
@@ -37,6 +38,7 @@ namespace Game.States
 
         // The GameManager handles core game logic (not injected -- created here)
         private GameManager _gameManager;
+        private PlayerInteractionFactory _interactionFactory;
 
         // A List<Module> is a GENERIC COLLECTION -- like an array but resizable.
         // "readonly" means the variable itself can't be reassigned after construction,
@@ -70,6 +72,15 @@ namespace Game.States
             // A DICTIONARY is like a lookup table: you give it a key, it returns a value.
             if (!_config.PlayersMap.ContainsKey(player))
                 player = 0; // Fall back to default player if the saved one doesn't exist
+
+            // Register default player interaction types (must be before PlayerController
+            // creation because it copies _context into a sub-context)
+            _interactionFactory = new PlayerInteractionFactory();
+            _interactionFactory.Register(ItemType.Clean, item => new PlayerCleaningState(item));
+            _interactionFactory.Register(ItemType.ReceptionDesk, item => new PlayerReceptionState(item));
+            _interactionFactory.Register(ItemType.BuyUpdate, item => new PlayerOnItemState(item));
+            _interactionFactory.Register(ItemType.ShowHud, item => new PlayerElevatorState(item));
+            _context.Install(_interactionFactory);
 
             // Create the player model (data) and controller (behavior)
             var playerConfig = _config.PlayersMap[player];
@@ -128,6 +139,7 @@ namespace Game.States
             _gameManager.Dispose();
 
             // Remove the GameManager and sub-systems from the context
+            _context.Uninstall(_interactionFactory);
             _context.Uninstall(_gameManager.ItemRegistry);
             _context.Uninstall(_gameManager.EventBus);
             _context.Uninstall(_gameManager);
