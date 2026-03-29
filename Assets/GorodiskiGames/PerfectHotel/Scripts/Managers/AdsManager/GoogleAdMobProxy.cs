@@ -27,6 +27,7 @@ namespace Game.Managers
         // Maps ad unit IDs to the Time.time when they should be reloaded
         private readonly Dictionary<string, float> _rewardedReloadTimeMap;
         private readonly Dictionary<string, float> _interstitialReloadTimeMap;
+        private readonly List<string> _tempKeys = new List<string>();
 
         // Google AdMob ad objects
         BannerView _bannerView;            // Persistent banner at screen bottom
@@ -131,8 +132,9 @@ namespace Game.Managers
             try
             {
                 // Check and reload rewarded ads
-                var keys = new List<string>(_rewardedReloadTimeMap.Keys);
-                foreach (var key in keys)
+                _tempKeys.Clear();
+                _tempKeys.AddRange(_rewardedReloadTimeMap.Keys);
+                foreach (var key in _tempKeys)
                 {
                     if (Time.time >= _rewardedReloadTimeMap[key])
                     {
@@ -162,8 +164,9 @@ namespace Game.Managers
                 }
 
                 // Check and reload interstitial ads (same pattern as rewarded)
-                keys = new List<string>(_interstitialReloadTimeMap.Keys);
-                foreach (var key in keys)
+                _tempKeys.Clear();
+                _tempKeys.AddRange(_interstitialReloadTimeMap.Keys);
+                foreach (var key in _tempKeys)
                 {
                     if (Time.time >= _interstitialReloadTimeMap[key])
                     {
