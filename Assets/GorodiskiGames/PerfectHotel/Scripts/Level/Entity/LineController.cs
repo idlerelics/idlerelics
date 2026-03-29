@@ -40,24 +40,22 @@ namespace Game.Level.Line
 
         public void RearrangeCustomersLine()
         {
-            int index = 0;
-            foreach (var point in _placeUnitMap.Keys.ToList())
+            var places = _placeUnitMap.Keys.ToList();
+            for (int i = 0; i < places.Count; i++)
             {
-                var place = _placeUnitMap.ElementAt(index).Key;
+                var place = places[i];
                 UnitController customer = null;
 
-                int customerIndex = index + 1;
-                if (customerIndex < _placeUnitMap.Count)
+                int nextIndex = i + 1;
+                if (nextIndex < places.Count)
                 {
-                    customer = _placeUnitMap.ElementAt(customerIndex).Value;
+                    customer = _placeUnitMap[places[nextIndex]];
                 }
 
                 _placeUnitMap[place] = customer;
 
                 if (customer != null)
                     customer.SwitchToState(new UnitWalkState(place.transform.position));
-
-                index++;
             }
         }
     }
