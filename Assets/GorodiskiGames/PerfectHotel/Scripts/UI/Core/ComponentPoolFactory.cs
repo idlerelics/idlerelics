@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using UnityEngine;
 
 namespace Game.UI.Pool
@@ -95,6 +96,7 @@ namespace Game.UI.Pool
             var go = component.gameObject;
             if (_instances.Contains(go))
             {
+                DOTween.Kill(go.transform);
                 go.SetActive(false);
                 if (_poolStorage)
                 {
@@ -109,6 +111,7 @@ namespace Game.UI.Pool
         {
             foreach (GameObject instance in _instances)
             {
+                DOTween.Kill(instance.transform);
                 instance.SetActive(false);
                 if (_poolStorage)
                 {

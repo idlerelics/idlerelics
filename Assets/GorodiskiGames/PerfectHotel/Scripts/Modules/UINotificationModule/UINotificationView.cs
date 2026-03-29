@@ -80,6 +80,11 @@ namespace Game.Modules.UINotificationModule
         /// Fires the ON_REMOVE event so the spawning system can recycle or destroy
         /// this notification. The "?." operator ensures no error if nobody is listening.
         /// </summary>
+        private void OnDisable()
+        {
+            _rectTransform.DOKill();
+        }
+
         private void FireRemove()
         {
             ON_REMOVE?.Invoke(this);

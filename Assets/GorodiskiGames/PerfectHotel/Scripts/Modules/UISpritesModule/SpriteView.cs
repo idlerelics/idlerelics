@@ -75,6 +75,11 @@ namespace Game.UI.Hud
         /// using SafeInvoke (a utility extension that checks for null before invoking,
         /// preventing NullReferenceException if no one is listening).
         /// </summary>
+        private void OnDisable()
+        {
+            _rectTransform.DOKill();
+        }
+
         private void OnMoveEnd()
         {
             ON_MOVE_COMPLETE.SafeInvoke(this);
