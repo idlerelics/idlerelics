@@ -91,13 +91,18 @@ namespace Game.Level.Player
         /// <summary>
         /// Called every frame via the Timer's TICK event.
         /// Checks if the joystick has input -- if so, transition to walk state.
+        /// Also re-checks for nearby items so the player doesn't have to
+        /// stop at the exact pixel to trigger cleaning.
         /// </summary>
         private void OnTICK()
         {
-            if (!_gameView.Joystick.HasInput)
-                return; // No input, stay idle
+            if (_gameView.Joystick.HasInput)
+            {
+                _player.SwitchToState(new PlayerWalkState());
+                return;
+            }
 
-            _player.SwitchToState(new PlayerWalkState());
+            FindClosestUsedItem();
         }
     }
 }

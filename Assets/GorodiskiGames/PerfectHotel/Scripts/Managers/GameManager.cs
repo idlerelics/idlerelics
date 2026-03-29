@@ -153,13 +153,17 @@ namespace Game
 
         /// <summary>
         /// Finds the closest interactive item to the player that's within interaction range.
-        /// Uses Vector3.Distance to calculate the straight-line distance in 3D space.
+        /// Uses horizontal (XZ) distance so items elevated on furniture are still reachable.
         /// </summary>
         public ItemController FindClosestUsedItem()
         {
             foreach (var item in _items)
             {
-                if (item != null && Vector3.Distance(item.Transform.position, Player.View.transform.position) < item.Radius)
+                if (item == null) continue;
+
+                var delta = item.Transform.position - Player.View.transform.position;
+                delta.y = 0f; // Ignore vertical difference
+                if (delta.sqrMagnitude < item.Radius * item.Radius)
                     return item;
             }
             return null;
