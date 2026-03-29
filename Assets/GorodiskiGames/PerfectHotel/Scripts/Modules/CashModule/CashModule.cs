@@ -61,6 +61,8 @@ namespace Game.Modules.CashModule
         /// </summary>
         public override void Initialize()
         {
+            Debug.Assert(_gameManager.Reception != null, "[CashModule] Reception must be initialized before CashModule");
+
             _cashPileRadius = _config.CashPileRadius;
 
             // Create a cash pile for the reception desk
