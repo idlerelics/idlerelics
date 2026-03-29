@@ -43,11 +43,23 @@ namespace Game.Level.Entity
         public int PurchaseProgressReward;  // Reward given when purchased
         public int UpdateProgressReward;    // Reward given when upgraded
 
+        public string PurchaseLabel;       // Label shown on HUD when ready to purchase
+        public string UpgradeLabel;        // Label shown on HUD when upgrading (null = use "LVL X")
+
         public EntityModel(string id, int lvl, EntityType type)
         {
             ID = id;
             Lvl = lvl;
             Type = type;
+
+            // Default labels — override PurchaseLabel/UpgradeLabel after construction for custom text
+            PurchaseLabel = type.ToString().ToUpper();
+
+            if (type == EntityType.Area) PurchaseLabel = "NEW AREA";
+            else if (type == EntityType.Elevator) PurchaseLabel = "NEW HOTEL";
+
+            if (type == EntityType.Reception) UpgradeLabel = "RECEPTIONIST";
+            else if (type == EntityType.Cleaner) UpgradeLabel = "SPEED";
         }
 
         /// <summary>Returns the total number of levels this entity can have (defined by subclass).</summary>

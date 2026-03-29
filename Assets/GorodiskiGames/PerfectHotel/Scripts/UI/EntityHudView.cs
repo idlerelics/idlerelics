@@ -110,40 +110,19 @@ namespace Game.Level.Entity
         /// <param name="model">The updated entity model.</param>
         protected override void OnModelChanged(EntityModel model)
         {
-            _info = model.Type.ToString().ToUpper();
+            _info = model.PurchaseLabel;
             _price = GameConstants.CashIcon + " " + MathUtil.NiceCash(model.PricePurchase);
 
-            if (model.Type == EntityType.Area || model.Type == EntityType.Elevator)
+            if (model.IsLocked)
             {
-                if (model.IsLocked)
-                {
-                    // Show the required level to unlock this area/elevator
-                    _info = "LEVEL " + model.TargetPurchaseValue;
-                    _price = "";
-                }
-                else
-                {
-                    // Unlocked but not yet purchased -- show descriptive label
-                    if (model.Type == EntityType.Area)
-                        _info = "NEW AREA";
-                    else if (model.Type == EntityType.Elevator)
-                        _info = "NEW HOTEL";
-                }
+                _info = "LEVEL " + model.TargetPurchaseValue;
+                _price = "";
             }
 
             if (model.IsPurchased)
             {
-                // Already purchased -- show upgrade cost and next level
                 _price = GameConstants.CashIcon + " " + MathUtil.NiceCash(model.PriceUpdate);
-
-                int lvl = model.LvlNext + 1;
-                _info = "LVL " + lvl;
-
-                // Override label for special entity types
-                if (model.Type == EntityType.Reception)
-                    _info = "RECEPTIONIST";
-                else if (model.Type == EntityType.Cleaner)
-                    _info = "SPEED";
+                _info = model.UpgradeLabel ?? "LVL " + (model.LvlNext + 1);
             }
 
             _infoText.text = _info;
