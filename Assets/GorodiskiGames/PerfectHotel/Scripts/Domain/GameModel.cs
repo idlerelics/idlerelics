@@ -21,6 +21,28 @@ namespace Game.Domain
     [Serializable]
     public sealed class GameModel : Observable
     {
+        [NonSerialized] private bool _isDirty;
+
+        /// <summary>
+        /// Marks that PlayerPrefs has pending changes that need flushing to disk.
+        /// The actual PlayerPrefs.Save() is deferred to FlushIfDirty().
+        /// </summary>
+        private void MarkDirty()
+        {
+            _isDirty = true;
+        }
+
+        /// <summary>
+        /// Writes pending PlayerPrefs changes to disk if any exist.
+        /// Call this periodically (e.g., every few seconds) and on app pause/quit.
+        /// </summary>
+        public void FlushIfDirty()
+        {
+            if (!_isDirty) return;
+            _isDirty = false;
+            PlayerPrefs.Save();
+        }
+
         /// <summary>
         /// A STATIC method belongs to the CLASS, not to any specific instance.
         /// You call it as GameModel.Load(config) without creating a GameModel first.
@@ -101,7 +123,7 @@ namespace Game.Domain
         {
             var data = JsonUtility.ToJson(this);
             PlayerPrefs.SetString("model", data);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -111,7 +133,7 @@ namespace Game.Domain
         public void Remove()
         {
             PlayerPrefs.DeleteKey("model");
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -145,7 +167,7 @@ namespace Game.Domain
             string hotelLvlWord = "HotelLvl";
             string key = hotelLvlWord + Hotel;
             PlayerPrefs.SetInt(key, lvl);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -167,7 +189,7 @@ namespace Game.Domain
             string hotelProgressWord = "HotelProgress";
             string key = hotelProgressWord + Hotel;
             PlayerPrefs.SetInt(key, progress);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -191,7 +213,7 @@ namespace Game.Domain
             string isUsedWord = "IsUsed";
             string key = isUsedWord + id;
             PlayerPrefs.SetInt(key, isUsed);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -221,7 +243,7 @@ namespace Game.Domain
             string isPurchasedWord = "IsPurchased";
             string key = isPurchasedWord + id;
             PlayerPrefs.SetInt(key, 1);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -232,7 +254,7 @@ namespace Game.Domain
             string lvlWord = "Lvl";
             string key = lvlWord + id;
             PlayerPrefs.SetInt(key, lvl);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -254,7 +276,7 @@ namespace Game.Domain
             string visualIndexWord = "VisualIndex";
             string key = visualIndexWord + id;
             PlayerPrefs.SetInt(key, visualIndex);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -277,7 +299,7 @@ namespace Game.Domain
             string cashWord = "Cash";
             string key = cashWord + id;
             PlayerPrefs.SetString(key, cash.ToString());
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -300,7 +322,7 @@ namespace Game.Domain
             string visitsCountWord = "VisitsCount";
             string key = visitsCountWord + id;
             PlayerPrefs.SetInt(key, numberOfVisits);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -323,7 +345,7 @@ namespace Game.Domain
             var times = LoadWatchAdsTimes();
             times++;
             PlayerPrefs.SetInt(GameConstants.kWatchAdsTimes, times);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -353,7 +375,7 @@ namespace Game.Domain
             var days = LoadLoginDays();
             days++;
             PlayerPrefs.SetInt(GameConstants.kLoginDays, days);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
 
         /// <summary>
@@ -362,7 +384,7 @@ namespace Game.Domain
         public void ResetLoginDays()
         {
             PlayerPrefs.SetInt(GameConstants.kLoginDays, 1);
-            PlayerPrefs.Save();
+            MarkDirty();
         }
     }
 }

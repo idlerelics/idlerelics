@@ -2,6 +2,7 @@
 // like #include in C++ or import in Python. They let us use classes
 // defined in those namespaces without typing the full path every time.
 using Game.Core;
+using Game.Domain;
 using Game.Managers;
 using Game.States;
 using Injection;
@@ -23,6 +24,9 @@ namespace Game
         // The underscore prefix (_) is a common C# naming convention for private fields.
         // Timer is a helper that forwards Unity's update ticks to other systems.
         private Timer _timer;
+        private float _saveTimer;
+        private const float SaveInterval = 5f;
+        private GameModel _gameModel;
 
         // "{ get; private set; }" is a C# AUTO-PROPERTY.
         // Other classes can READ Context (get), but only this class can WRITE it (private set).
@@ -98,6 +102,26 @@ namespace Game
         private void Update()
         {
             _timer.Update();
+
+            _saveTimer += Time.deltaTime;
+            if (_saveTimer >= SaveInterval)
+            {
+                _saveTimer = 0f;
+                if (_gameModel == null)
+                    _gameModel = Context?.Get<GameManager>()?.Model;
+                _gameModel?.FlushIfDirty();
+            }
+        }
+
+        private void OnApplicationPause(bool pauseStatus)
+        {
+            if (pauseStatus)
+                _gameModel?.FlushIfDirty();
+        }
+
+        private void OnApplicationQuit()
+        {
+            _gameModel?.FlushIfDirty();
         }
 
         /// <summary>
