@@ -67,6 +67,57 @@ Assets/GorodiskiGames/PerfectHotel/
 └── ResourcesStatic/   # Static assets (animations, materials, models, shaders, textures, fonts)
 ```
 
+## Key Class Locations
+
+All paths relative to `Assets/GorodiskiGames/PerfectHotel/Scripts/`.
+
+### Managers & Config
+- `GameManager` → `Managers/GameManager.cs`
+- `GameConfig` → `Config/GameConfig.cs`
+- `GameModel` → `Domain/GameModel.cs`
+- `HudManager` → `Managers/HudManager.cs`
+- `ResourcesManager` → `Managers/ResourcesManager.cs`
+- `AdsManager` → `Managers/AdsManager.cs`
+
+### Core Framework
+- `BehaviourWithModel<T>` → `Core/UI/BehaviourWithModel.cs`
+- `Observable`, `IObserver` → `Core/Observer/Observable.cs`, `Core/Observer/IObserver.cs`
+- `Timer` → `Core/Timer.cs`
+- `Context`, `Injector` → `Core/DI/`
+- `State` (base) → `Core/StateMachine/`
+
+### Player States
+- `PlayerIdleState`, `PlayerWalkState`, `PlayerFindEntityState` → `Level/Player/PlayerStates/`
+- `PlayerItemState`, `PlayerCleaningState`, `PlayerReceptionState`, `PlayerOnItemState`, `PlayerElevatorState`, `PlayerPauseState` → `Level/Player/PlayerStates/`
+- `PlayerController` → `Level/Player/PlayerController.cs`
+
+### Items
+- `ItemController`, `ItemRoomController`, `ItemToiletController`, `ItemReceptionController`, `ItemModel` → `Level/Entity/Item/ItemController.cs`
+- `ItemView`, `ItemType` enum → `Level/Entity/Item/ItemView.cs`
+- `ItemFillBarView` → `Level/Entity/Item/ItemFillBarView.cs`
+- `ItemReusableView` → `Level/Entity/Item/ItemReusableView.cs`
+
+### Room States
+- `RoomInitializeState` → `Level/Entity/Room/States/RoomInitializeState.cs`
+- `RoomAvailableState` → `Level/Entity/Room/States/RoomAvailableState.cs`
+- `RoomOccupiedState` → `Level/Entity/Room/States/RoomOccupiedState.cs`
+- `RoomUsedState` → `Level/Entity/Room/States/RoomUsedState.cs`
+- `RoomReadyToPurchaseState`, `RoomHiddenState` → `Level/Entity/Room/States/`
+- `RoomController` → `Level/Entity/Room/RoomController.cs`
+
+### Game States
+- `GameInitializeState` → `States/GameInitializeState.cs`
+- `GameLoadLevelState` → `States/GameLoadLevelState.cs`
+- `GamePlayState` → `States/GamePlayState.cs`
+
+### Modules
+- `CashModule`, `EntityModule`, `ReceptionModule`, `ToiletModule`, `UtilityModule` → `Modules/`
+
+### UI
+- `GameView` (joystick, camera ref) → `UI/GameView.cs`
+- `FillBarView` → `UI/Hud/FillBarView.cs`
+- `CameraController` → `Camera/CameraController.cs`
+
 ## Configuration
 - `GameConfig` (ScriptableObject) — central game balance: cash defaults, entity radii, walk speeds, inventory limits, shop products, hotel configs
 - Entity-specific configs loaded from `Resources/{Entity}Configs/`
