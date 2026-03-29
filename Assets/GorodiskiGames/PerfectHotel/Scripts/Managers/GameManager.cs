@@ -13,114 +13,119 @@ using Game.Level.Entity;
 using Game.Level.Toilet;
 using Game.Level.Player;
 using Game.Level.Unit;
-using Utilities;
 
 namespace Game
 {
     /// <summary>
-    /// Central hub for all runtime game state. Holds references to the player,
-    /// rooms, toilets, reception, elevator, and all interactive items.
+    /// Central hub for all runtime game state. Delegates item management to
+    /// ItemRegistry and event broadcasting to GameEventBus.
     ///
-    /// This is NOT a MonoBehaviour -- it's a plain C# class managed by the DI container.
-    /// Other systems use events on this class to communicate (loose coupling).
-    ///
-    /// Events (Action delegates) are the primary communication mechanism:
-    /// - Systems subscribe to events they care about
-    /// - When something happens, the event is fired (SafeInvoke)
-    /// - All subscribers are notified without the sender knowing about them
+    /// All existing public API is preserved as forwarding methods so no
+    /// consumer code needs to change.
     /// </summary>
     public sealed class GameManager : IDisposable
     {
-        // ---- Events ----
-        // These events notify other systems when important things happen.
-        // Action<T> is a delegate that takes parameters and returns void.
-        public event Action<Vector3, int> ADD_GAME_PROGRESS;           // Progress earned at a world position
-        public event Action<int> PROGRESS_CHANGED;                     // Total progress value changed
-        public event Action<int> LEVEL_CHANGED;                        // Player changed to a new level
-        public event Action<AreaController> AREA_PURCHASED;            // A new area was unlocked
-        public event Action<Vector3> FLY_TO_REMOVE_CASH;               // Cash should fly to a position and be removed
-        public event Action<ItemController> ITEM_ADDED;                // A new interactive item appeared
-        public event Action<Vector3, int> ON_NOTIFICATION_NEED_LVL;    // "Need level X" notification at position
-        public event Action ELEVATOR_PURCHASED;                        // The elevator was bought
-        public event Action<ItemToiletController> ON_PLAYER_TRY_DROP_INVENTORY; // Player tries to deliver inventory to toilet
-        public event Action<bool> ON_PLAYERS_HUD_OPEN;                 // Players HUD opened/closed
-        public event Action ON_TRY_SHOW_INTERSTITIAL;                  // Time to try showing an interstitial ad
+        // ---- Sub-systems ----
+        public readonly ItemRegistry ItemRegistry;
+        public readonly GameEventBus EventBus;
+
+        // ---- Forwarding: events (subscribe/unsubscribe goes to the real owner) ----
+        public event Action<Vector3, int> ADD_GAME_PROGRESS
+        {
+            add => EventBus.ADD_GAME_PROGRESS += value;
+            remove => EventBus.ADD_GAME_PROGRESS -= value;
+        }
+        public event Action<int> PROGRESS_CHANGED
+        {
+            add => EventBus.PROGRESS_CHANGED += value;
+            remove => EventBus.PROGRESS_CHANGED -= value;
+        }
+        public event Action<int> LEVEL_CHANGED
+        {
+            add => EventBus.LEVEL_CHANGED += value;
+            remove => EventBus.LEVEL_CHANGED -= value;
+        }
+        public event Action<AreaController> AREA_PURCHASED
+        {
+            add => EventBus.AREA_PURCHASED += value;
+            remove => EventBus.AREA_PURCHASED -= value;
+        }
+        public event Action<Vector3> FLY_TO_REMOVE_CASH
+        {
+            add => EventBus.FLY_TO_REMOVE_CASH += value;
+            remove => EventBus.FLY_TO_REMOVE_CASH -= value;
+        }
+        public event Action<ItemController> ITEM_ADDED
+        {
+            add => ItemRegistry.ITEM_ADDED += value;
+            remove => ItemRegistry.ITEM_ADDED -= value;
+        }
+        public event Action<Vector3, int> ON_NOTIFICATION_NEED_LVL
+        {
+            add => EventBus.ON_NOTIFICATION_NEED_LVL += value;
+            remove => EventBus.ON_NOTIFICATION_NEED_LVL -= value;
+        }
+        public event Action ELEVATOR_PURCHASED
+        {
+            add => EventBus.ELEVATOR_PURCHASED += value;
+            remove => EventBus.ELEVATOR_PURCHASED -= value;
+        }
+        public event Action<ItemToiletController> ON_PLAYER_TRY_DROP_INVENTORY
+        {
+            add => EventBus.ON_PLAYER_TRY_DROP_INVENTORY += value;
+            remove => EventBus.ON_PLAYER_TRY_DROP_INVENTORY -= value;
+        }
+        public event Action<bool> ON_PLAYERS_HUD_OPEN
+        {
+            add => EventBus.ON_PLAYERS_HUD_OPEN += value;
+            remove => EventBus.ON_PLAYERS_HUD_OPEN -= value;
+        }
+        public event Action ON_TRY_SHOW_INTERSTITIAL
+        {
+            add => EventBus.ON_TRY_SHOW_INTERSTITIAL += value;
+            remove => EventBus.ON_TRY_SHOW_INTERSTITIAL -= value;
+        }
 
         // ---- Game State ----
-        private List<ItemController> _items;            // All active interactive items in the world
-        private Dictionary<int, List<ItemController>> _itemsByArea; // Items indexed by area for fast lookup
-        public List<ItemController> Items => _items;
+        public List<ItemController> Items => ItemRegistry.Items;
 
-        public readonly GameModel Model;                // Persistent save data (readonly = set only in constructor)
-        public PlayerController Player;                 // The player character
-        public ReceptionController Reception;           // The front desk
-        public List<RoomController> Rooms;              // All rooms in the current level
-        public List<ToiletController> Toilets;          // All toilets
-        public readonly Dictionary<int, AreaController> AreasMap;  // Areas indexed by number
-        public ElevatorController Elevator;              // The elevator (for switching levels)
-        public List<EntityController> Entities;          // All purchasable entities
-        public UtilityController Utility;                // The utility room (supplies)
-        public readonly Dictionary<UnitController, RoomController> CustomerRoomMap; // Maps customers to their assigned rooms
+        public readonly GameModel Model;
+        public PlayerController Player;
+        public ReceptionController Reception;
+        public List<RoomController> Rooms;
+        public List<ToiletController> Toilets;
+        public readonly Dictionary<int, AreaController> AreasMap;
+        public ElevatorController Elevator;
+        public List<EntityController> Entities;
+        public UtilityController Utility;
+        public readonly Dictionary<UnitController, RoomController> CustomerRoomMap;
 
-        /// <summary>
-        /// Constructor -- loads the game model from save data and initializes all collections.
-        /// </summary>
         public GameManager(GameConfig config)
         {
-            Model = GameModel.Load(config);                  // Load saved progress or create new
+            Model = GameModel.Load(config);
+            ItemRegistry = new ItemRegistry();
+            EventBus = new GameEventBus();
             AreasMap = new Dictionary<int, AreaController>();
             Rooms = new List<RoomController>();
             CustomerRoomMap = new Dictionary<UnitController, RoomController>();
-            _items = new List<ItemController>();
-            _itemsByArea = new Dictionary<int, List<ItemController>>();
             Toilets = new List<ToiletController>();
             Entities = new List<EntityController>();
         }
 
         public void Dispose()
         {
+            ItemRegistry.Dispose();
+            EventBus.Dispose();
         }
 
-        /// <summary>
-        /// Adds an interactive item to the world (if not already present).
-        /// Fires ITEM_ADDED so systems like PlayerIdleState can check for nearby items.
-        /// </summary>
-        public void AddItem(ItemController item)
-        {
-            if (!_items.Contains(item))
-            {
-                _items.Add(item);
+        // ---- Forwarding: item methods ----
+        public void AddItem(ItemController item) => ItemRegistry.AddItem(item);
+        public void RemoveItem(ItemController item) => ItemRegistry.RemoveItem(item);
+        public ItemController FindUsedItem(int targetArea, ItemType targetItem) => ItemRegistry.FindUsedItem(targetArea, targetItem);
+        public ItemController FindClosestUsedItem() => ItemRegistry.FindClosestUsedItem(Player.View.transform.position);
 
-                if (!_itemsByArea.TryGetValue(item.Area, out var areaList))
-                {
-                    areaList = new List<ItemController>();
-                    _itemsByArea[item.Area] = areaList;
-                }
-                areaList.Add(item);
+        // ---- Find methods (stay on GameManager — they use collections that live here) ----
 
-                ITEM_ADDED.SafeInvoke(item); // Notify subscribers
-            }
-        }
-
-        /// <summary>Removes an item from the active items list (e.g., when player starts using it).</summary>
-        public void RemoveItem(ItemController item)
-        {
-            if (_items.Remove(item))
-            {
-                if (_itemsByArea.TryGetValue(item.Area, out var areaList))
-                    areaList.Remove(item);
-            }
-        }
-
-        internal void FireElevatorPurchased()
-        {
-            ELEVATOR_PURCHASED?.Invoke(); // ?. is the null-conditional operator (same as SafeInvoke)
-        }
-
-        /// <summary>
-        /// Finds the first room that is available (not occupied by a customer).
-        /// Returns null if all rooms are full.
-        /// </summary>
         public RoomController FindAvailableRoom()
         {
             foreach (var room in Rooms)
@@ -131,56 +136,6 @@ namespace Game
             return null;
         }
 
-        /// <summary>
-        /// Finds an item of a specific type in a specific area.
-        /// Used by NPCs to find where they need to go (e.g., find the cleaning spot in area 2).
-        /// </summary>
-        public ItemController FindUsedItem(int targetArea, ItemType targetItem)
-        {
-            // Wildcard: search all items
-            if (targetArea == -1)
-            {
-                foreach (var item in _items)
-                {
-                    if (item != null && item.Type == targetItem)
-                        return item;
-                }
-                return null;
-            }
-
-            // Area-indexed lookup
-            if (_itemsByArea.TryGetValue(targetArea, out var areaList))
-            {
-                foreach (var item in areaList)
-                {
-                    if (item != null && item.Type == targetItem)
-                        return item;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Finds the closest interactive item to the player that's within interaction range.
-        /// Uses horizontal (XZ) distance so items elevated on furniture are still reachable.
-        /// </summary>
-        public ItemController FindClosestUsedItem()
-        {
-            foreach (var item in _items)
-            {
-                if (item == null) continue;
-
-                var delta = item.Transform.position - Player.View.transform.position;
-                delta.y = 0f; // Ignore vertical difference
-                if (delta.sqrMagnitude < item.Radius * item.Radius)
-                    return item;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Finds the closest entity (purchasable building/room) within a given radius of the player.
-        /// </summary>
         public EntityController FindClosestEntity(float radius)
         {
             foreach (var entity in Entities)
@@ -191,7 +146,6 @@ namespace Game
             return null;
         }
 
-        /// <summary>Finds a purchased toilet in a specific area.</summary>
         public ToiletController FindToilet(int area)
         {
             foreach (var toilet in Toilets)
@@ -202,7 +156,6 @@ namespace Game
             return null;
         }
 
-        /// <summary>Finds an area by its number. Logs an error if not found.</summary>
         public AreaController FindArea(int number)
         {
             foreach (var area in AreasMap.Values)
@@ -214,52 +167,16 @@ namespace Game
             return null;
         }
 
-        // ---- Event fire methods ----
-        // These methods are called by other systems to broadcast events.
-
-        public void FireAddGameProgress(Vector3 position, int progressDelta)
-        {
-            ADD_GAME_PROGRESS.SafeInvoke(position, progressDelta);
-        }
-
-        public void FireProgressChanged(int progress)
-        {
-            PROGRESS_CHANGED.SafeInvoke(progress);
-        }
-
-        public void FireAreaPurchased(AreaController area)
-        {
-            AREA_PURCHASED.SafeInvoke(area);
-        }
-
-        public void FireLevelChanged(int lvl)
-        {
-            LEVEL_CHANGED.SafeInvoke(lvl);
-        }
-
-        public void FireFlyToRemoveCash(Vector3 endPosition)
-        {
-            FLY_TO_REMOVE_CASH.SafeInvoke(endPosition);
-        }
-
-        public void FireNotificationNeedLvl(Vector3 itemPosition, int lvl)
-        {
-            ON_NOTIFICATION_NEED_LVL.SafeInvoke(itemPosition, lvl);
-        }
-
-        public void FirePlayerTryDropInventory(ItemToiletController item)
-        {
-            ON_PLAYER_TRY_DROP_INVENTORY?.Invoke(item);
-        }
-
-        public void FirePlayersHudOpen(bool value)
-        {
-            ON_PLAYERS_HUD_OPEN.SafeInvoke(value);
-        }
-
-        public void FireTryShowInterstitial()
-        {
-            ON_TRY_SHOW_INTERSTITIAL.SafeInvoke();
-        }
+        // ---- Forwarding: fire methods ----
+        public void FireAddGameProgress(Vector3 position, int progressDelta) => EventBus.FireAddGameProgress(position, progressDelta);
+        public void FireProgressChanged(int progress) => EventBus.FireProgressChanged(progress);
+        public void FireAreaPurchased(AreaController area) => EventBus.FireAreaPurchased(area);
+        public void FireLevelChanged(int lvl) => EventBus.FireLevelChanged(lvl);
+        public void FireFlyToRemoveCash(Vector3 endPosition) => EventBus.FireFlyToRemoveCash(endPosition);
+        public void FireNotificationNeedLvl(Vector3 itemPosition, int lvl) => EventBus.FireNotificationNeedLvl(itemPosition, lvl);
+        internal void FireElevatorPurchased() => EventBus.FireElevatorPurchased();
+        public void FirePlayerTryDropInventory(ItemToiletController item) => EventBus.FirePlayerTryDropInventory(item);
+        public void FirePlayersHudOpen(bool value) => EventBus.FirePlayersHudOpen(value);
+        public void FireTryShowInterstitial() => EventBus.FireTryShowInterstitial();
     }
 }

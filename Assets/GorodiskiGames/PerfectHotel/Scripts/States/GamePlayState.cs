@@ -61,6 +61,8 @@ namespace Game.States
             // Create the GameManager which holds the game model (saved data) and logic
             _gameManager = new GameManager(_config);
             _context.Install(_gameManager);
+            _context.Install(_gameManager.ItemRegistry);
+            _context.Install(_gameManager.EventBus);
 
             // Look up which player skin/character is selected
             var player = _gameManager.Model.Player;
@@ -125,7 +127,9 @@ namespace Game.States
             _gameManager.Player.Dispose();
             _gameManager.Dispose();
 
-            // Remove the GameManager from the context since we're done with it
+            // Remove the GameManager and sub-systems from the context
+            _context.Uninstall(_gameManager.ItemRegistry);
+            _context.Uninstall(_gameManager.EventBus);
             _context.Uninstall(_gameManager);
         }
 

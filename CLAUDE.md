@@ -72,7 +72,9 @@ Assets/GorodiskiGames/PerfectHotel/
 All paths relative to `Assets/GorodiskiGames/PerfectHotel/Scripts/`.
 
 ### Managers & Config
-- `GameManager` → `Managers/GameManager.cs`
+- `GameManager` → `Managers/GameManager.cs` (thin wrapper, delegates to ItemRegistry & GameEventBus)
+- `ItemRegistry` → `Managers/ItemRegistry.cs` (item add/remove/find, ITEM_ADDED event)
+- `GameEventBus` → `Managers/GameEventBus.cs` (all game-wide events and Fire methods)
 - `GameConfig` → `Config/GameConfig.cs`
 - `GameModel` → `Domain/GameModel.cs`
 - `HudManager` → `Managers/HudManager.cs`
