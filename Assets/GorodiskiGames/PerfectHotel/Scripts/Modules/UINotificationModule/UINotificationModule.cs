@@ -25,7 +25,7 @@ namespace Game.Modules.UINotificationModule
         }
         public override void Dispose()
         {
-            _gameManager.ON_NOTIFICATION_NEED_LVL += OnAreaLockedNotification;
+            _gameManager.ON_NOTIFICATION_NEED_LVL -= OnAreaLockedNotification;
 
             _view.UINotification.ReleaseAllInstances();
         }

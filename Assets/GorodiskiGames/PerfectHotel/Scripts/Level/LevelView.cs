@@ -11,7 +11,7 @@ namespace Game.Level
 
         private Dictionary<int, int> _progressMaxMap;
 
-        public Transform UnitRemovePoint => _unitSpawnPoint;
+        public Transform UnitRemovePoint => _unitRemovePoint;
         public Transform UnitSpawnPoint => _unitSpawnPoint;
 
         public int MaxLevels => _progressMaxMap.Count + 1;
