@@ -48,6 +48,7 @@ namespace Game
 
         // ---- Game State ----
         private List<ItemController> _items;            // All active interactive items in the world
+        private Dictionary<int, List<ItemController>> _itemsByArea; // Items indexed by area for fast lookup
         public List<ItemController> Items => _items;
 
         public readonly GameModel Model;                // Persistent save data (readonly = set only in constructor)
@@ -71,6 +72,7 @@ namespace Game
             Rooms = new List<RoomController>();
             CustomerRoomMap = new Dictionary<UnitController, RoomController>();
             _items = new List<ItemController>();
+            _itemsByArea = new Dictionary<int, List<ItemController>>();
             Toilets = new List<ToiletController>();
             Entities = new List<EntityController>();
         }
@@ -89,6 +91,13 @@ namespace Game
             {
                 _items.Add(item);
 
+                if (!_itemsByArea.TryGetValue(item.Area, out var areaList))
+                {
+                    areaList = new List<ItemController>();
+                    _itemsByArea[item.Area] = areaList;
+                }
+                areaList.Add(item);
+
                 ITEM_ADDED.SafeInvoke(item); // Notify subscribers
             }
         }
@@ -96,9 +105,10 @@ namespace Game
         /// <summary>Removes an item from the active items list (e.g., when player starts using it).</summary>
         public void RemoveItem(ItemController item)
         {
-            if (_items.Contains(item))
+            if (_items.Remove(item))
             {
-                _items.Remove(item);
+                if (_itemsByArea.TryGetValue(item.Area, out var areaList))
+                    areaList.Remove(item);
             }
         }
 
@@ -127,28 +137,27 @@ namespace Game
         /// </summary>
         public ItemController FindUsedItem(int targetArea, ItemType targetItem)
         {
-            foreach (var item in _items)
+            // Wildcard: search all items
+            if (targetArea == -1)
             {
-                if (item != null && AreaMatch(targetArea, item.Area) && item.Type == targetItem)
-                    return item;
+                foreach (var item in _items)
+                {
+                    if (item != null && item.Type == targetItem)
+                        return item;
+                }
+                return null;
+            }
+
+            // Area-indexed lookup
+            if (_itemsByArea.TryGetValue(targetArea, out var areaList))
+            {
+                foreach (var item in areaList)
+                {
+                    if (item != null && item.Type == targetItem)
+                        return item;
+                }
             }
             return null;
-        }
-
-        /// <summary>
-        /// Checks if an item's area matches the target area.
-        /// -1 means "any area" (wildcard match).
-        /// </summary>
-        private bool AreaMatch(int targetArea, int itemArea)
-        {
-            bool result = false;
-
-            if (targetArea == -1)
-                result = true;           // -1 = match any area
-            else if (itemArea == targetArea)
-                result = true;           // Exact match
-
-            return result;
         }
 
         /// <summary>
