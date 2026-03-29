@@ -9,8 +9,9 @@ namespace Game.Level.Item
 
         private Camera _camera;
 
-        private void Start()
+        protected override void OnStart()
         {
+            base.OnStart();
             _camera = Camera.main;
         }
 
