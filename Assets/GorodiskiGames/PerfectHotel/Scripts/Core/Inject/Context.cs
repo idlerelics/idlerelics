@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Injection
 {
@@ -118,17 +119,11 @@ namespace Injection
         /// </summary>
         public T Get<T>() where T : class
         {
-            // #if UNITY_EDITOR means this code only runs inside the Unity Editor (not in builds).
-            // It adds a helpful error message during development.
-#if UNITY_EDITOR
-            if (!_objectsMap.ContainsKey(typeof(T)))
-            {
-                throw new KeyNotFoundException("Not found " + typeof(T));
-            }
-#endif
+            if (_objectsMap.TryGetValue(typeof(T), out var obj))
+                return (T)obj;
 
-            // (T) is a "cast" -- it converts the stored object back to the expected type T
-            return (T)_objectsMap[typeof(T)];
+            Debug.LogError("[Context] Dependency not found: " + typeof(T));
+            throw new KeyNotFoundException("Not found " + typeof(T));
         }
 
         /// <summary>
@@ -137,13 +132,11 @@ namespace Injection
         /// </summary>
         public object Get(Type type)
         {
-#if UNITY_EDITOR
-            if (!_objectsMap.ContainsKey(type))
-            {
-                throw new KeyNotFoundException("Not found " + type);
-            }
-#endif
-            return _objectsMap[type];
+            if (_objectsMap.TryGetValue(type, out var obj))
+                return obj;
+
+            Debug.LogError("[Context] Dependency not found: " + type);
+            throw new KeyNotFoundException("Not found " + type);
         }
     }
 }
