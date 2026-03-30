@@ -33,16 +33,15 @@ namespace Game.Domain
         }
 
         /// <summary>
-        /// Writes pending PlayerPrefs changes to disk if any exist.
-        /// Also serializes the model to JSON if needed.
+        /// Flushes pending PlayerPrefs changes to disk if any exist.
+        /// Save() already updates the in-memory PlayerPrefs cache — this just
+        /// commits them to persistent storage.
         /// Call this periodically (e.g., every few seconds) and on app pause/quit.
         /// </summary>
         public void FlushIfDirty()
         {
             if (!_isDirty) return;
             _isDirty = false;
-            var data = JsonUtility.ToJson(this);
-            PlayerPrefs.SetString("model", data);
             PlayerPrefs.Save();
         }
 
@@ -118,13 +117,15 @@ namespace Game.Domain
         }
 
         /// <summary>
-        /// Marks the model as needing to be saved. The actual JSON serialization
-        /// and disk write are deferred to FlushIfDirty(), which runs every few
-        /// seconds and on app pause/quit. This avoids expensive per-frame
-        /// serialization when Save() is called on hot paths (e.g., cash collection).
+        /// Serializes the model to JSON and writes it to the in-memory PlayerPrefs cache.
+        /// The expensive disk flush is deferred to FlushIfDirty(), which runs every few
+        /// seconds and on app pause/quit. The in-memory write is needed immediately
+        /// because GameModel.Load() reads from PlayerPrefs (e.g., during hotel switches).
         /// </summary>
         public void Save()
         {
+            var data = JsonUtility.ToJson(this);
+            PlayerPrefs.SetString("model", data);
             MarkDirty();
         }
 
