@@ -17,7 +17,11 @@ namespace Game.Level.Unit
 
         public override void Initialize()
         {
-            _room = _gameManager.CustomerRoomMap[_unit];
+            if (!_gameManager.CustomerRoomMap.TryGetValue(_unit, out _room))
+            {
+                _unit.SwitchToState(new UnitIdleState());
+                return;
+            }
             _stayDuration = _room.Model.StayDuration;
 
             _unit.View.transform.eulerAngles = _room.View.CustomerPosition.eulerAngles;

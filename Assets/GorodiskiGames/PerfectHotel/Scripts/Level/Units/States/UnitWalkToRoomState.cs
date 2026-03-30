@@ -36,7 +36,11 @@ namespace Game.Level.Unit
         public override void Initialize()
         {
             // Look up which room was assigned to this customer in the GameManager's mapping
-            _room = _gameManager.CustomerRoomMap[_unit];
+            if (!_gameManager.CustomerRoomMap.TryGetValue(_unit, out _room))
+            {
+                _unit.SwitchToState(new UnitIdleState());
+                return;
+            }
             // Set the destination to the specific position inside the room where guests stand/sit
             _endPosition = _room.View.CustomerPosition.position;
 
