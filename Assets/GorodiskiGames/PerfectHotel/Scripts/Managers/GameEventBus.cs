@@ -51,12 +51,12 @@ namespace Game
 
         public void FireElevatorPurchased()
         {
-            ELEVATOR_PURCHASED?.Invoke();
+            ELEVATOR_PURCHASED.SafeInvoke();
         }
 
         public void FirePlayerTryDropInventory(ItemController item)
         {
-            ON_PLAYER_TRY_DROP_INVENTORY?.Invoke(item);
+            ON_PLAYER_TRY_DROP_INVENTORY.SafeInvoke(item);
         }
 
         public void FirePlayersHudOpen(bool value)
