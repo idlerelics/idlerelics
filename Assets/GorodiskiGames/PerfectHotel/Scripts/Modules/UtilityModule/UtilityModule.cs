@@ -409,18 +409,18 @@ namespace Game.Modules.Utility
         public ItemUtilityView FindNearestItem()
         {
             ItemUtilityView result = null;
-            float minDistance = float.MaxValue;
+            float minSqrDistance = float.MaxValue;
             var playerPosition = new Vector2(_gameManager.Player.View.Position.x, _gameManager.Player.View.Position.z);
-            float itemRadius = _config.UtilityItemRadius;
+            float sqrRadius = _config.UtilityItemRadius * _config.UtilityItemRadius;
 
             foreach (var item in _gameManager.Utility.ItemsMap.Values)
             {
                 var itemPosition = new Vector2(item.Position.x, item.Position.z);
-                var distance = Vector2.Distance(itemPosition, playerPosition);
+                var sqrDistance = (itemPosition - playerPosition).sqrMagnitude;
 
-                if (distance <= itemRadius && distance < minDistance)
+                if (sqrDistance <= sqrRadius && sqrDistance < minSqrDistance)
                 {
-                    minDistance = distance;
+                    minSqrDistance = sqrDistance;
                     result = item;
                 }
             }

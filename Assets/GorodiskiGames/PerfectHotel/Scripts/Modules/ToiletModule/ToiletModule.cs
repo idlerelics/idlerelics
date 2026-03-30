@@ -61,20 +61,20 @@ namespace Game.Modules.ToiletModule
         public ItemToiletController FindNearestCabine()
         {
             ItemToiletController result = null;
-            float minDistance = float.MaxValue;
+            float minSqrDistance = float.MaxValue;
             var playerPosition = new Vector2(_gameManager.Player.View.Position.x, _gameManager.Player.View.Position.z);
-            float itemRadius = _config.ToiletItemRadius;
+            float sqrRadius = _config.ToiletItemRadius * _config.ToiletItemRadius;
 
             foreach (var toilet in _gameManager.Toilets)
             {
                 foreach (var item in toilet.CabinesMap.Keys)
                 {
                     var itemPosition = new Vector2(item.View.Position.x, item.View.Position.z);
-                    var distance = Vector2.Distance(itemPosition, playerPosition);
+                    var sqrDistance = (itemPosition - playerPosition).sqrMagnitude;
 
-                    if (distance <= itemRadius && distance < minDistance)
+                    if (sqrDistance <= sqrRadius && sqrDistance < minSqrDistance)
                     {
-                        minDistance = distance;
+                        minSqrDistance = sqrDistance;
                         result = item;
                     }
                 }
