@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Game.Level.Loader.LoaderStates
 {
@@ -18,6 +19,7 @@ namespace Game.Level.Loader.LoaderStates
             _loader.View.UnitView.Walk(_loader.Inventories);
 
             _loader.View.UnitView.NavMeshAgent.enabled = true;
+            _loader.View.UnitView.NavMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
             _loader.View.UnitView.NavMeshAgent.SetDestination(_endPosition);
             _loader.View.UnitView.NavMeshAgent.speed = _loader.Model.Speed;
 
