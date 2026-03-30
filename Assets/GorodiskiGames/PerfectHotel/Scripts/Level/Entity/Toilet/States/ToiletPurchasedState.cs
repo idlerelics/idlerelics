@@ -32,6 +32,16 @@ namespace Game.Level.Toilet
         public override void Dispose()
         {
             _gameManager.LEVEL_CHANGED -= OnLvlChanged;
+
+            // Unsubscribe all cabine-level event handlers to prevent leaks.
+            // At any point, a cabine is either available (subscribed to UNIT_LEFT_TOILET_CABINE)
+            // or used/needing supplies (subscribed to ITEM_FINISHED). We remove both
+            // to guarantee cleanup regardless of current cabine state.
+            foreach (var cabine in _toilet.CabinesMap.Keys)
+            {
+                cabine.UNIT_LEFT_TOILET_CABINE -= OnUnitLeftToiletCabine;
+                cabine.ITEM_FINISHED -= OnToiletPaperDelivered;
+            }
         }
 
         private void OnLvlChanged(int lvl)
