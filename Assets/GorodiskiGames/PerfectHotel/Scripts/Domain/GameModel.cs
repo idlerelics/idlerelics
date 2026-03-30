@@ -314,7 +314,15 @@ namespace Game.Domain
             string cashWord = "Cash";
             string key = cashWord + id;
             var value = PlayerPrefs.GetString(key, "0");
-            return Convert.ToInt64(value);
+            try
+            {
+                return Convert.ToInt64(value);
+            }
+            catch (FormatException)
+            {
+                Debug.LogWarning("[GameModel] Corrupted cash value for " + key + ": " + value);
+                return 0;
+            }
         }
 
         /// <summary>

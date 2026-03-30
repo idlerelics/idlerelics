@@ -71,6 +71,16 @@ namespace Game
 
         public void Dispose()
         {
+            ADD_GAME_PROGRESS = null;
+            PROGRESS_CHANGED = null;
+            LEVEL_CHANGED = null;
+            AREA_PURCHASED = null;
+            FLY_TO_REMOVE_CASH = null;
+            ON_NOTIFICATION_NEED_LVL = null;
+            ELEVATOR_PURCHASED = null;
+            ON_PLAYER_TRY_DROP_INVENTORY = null;
+            ON_PLAYERS_HUD_OPEN = null;
+            ON_TRY_SHOW_INTERSTITIAL = null;
         }
     }
 }

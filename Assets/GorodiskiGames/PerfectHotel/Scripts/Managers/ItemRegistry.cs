@@ -23,6 +23,7 @@ namespace Game
 
         public void AddItem(ItemController item)
         {
+            if (item == null) return;
             if (!_items.Contains(item))
             {
                 _items.Add(item);
