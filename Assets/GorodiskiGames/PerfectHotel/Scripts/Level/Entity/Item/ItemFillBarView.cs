@@ -20,7 +20,7 @@ namespace Game.Level.Item
             _fillBar.Holder.SetActive(model.Duration > 0);
             _fillBar.Marker.SetActive(model.Duration > 0);
 
-            _fillBar.FillImage.fillAmount = model.Duration / model.DurationNominal;
+            _fillBar.FillImage.fillAmount = model.DurationNominal > 0f ? model.Duration / model.DurationNominal : 0f;
         }
 
         private void Update()
