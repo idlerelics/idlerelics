@@ -103,17 +103,17 @@ namespace Game.Managers
                 {
                     ON_PURCHASE_CLICKED?.Invoke();
 
-                    Debug.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
+                    Log.Info(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
                     controller.InitiatePurchase(product);
                 }
                 else
                 {
-                    Debug.Log("BuyProductID: FAIL. Not purchasing product, either is not found or is not available for purchase");
+                    Log.Info("BuyProductID: FAIL. Not purchasing product, either is not found or is not available for purchase");
                 }
             }
             else
             {
-                Debug.Log("BuyProductID FAIL. Not initialized.");
+                Log.Info("BuyProductID FAIL. Not initialized.");
             }
         }
 
@@ -121,13 +121,13 @@ namespace Game.Managers
         {
             if (!IsPurchaseInitialized())
             {
-                Debug.Log("RestorePurchases FAIL. Not initialized.");
+                Log.Info("RestorePurchases FAIL. Not initialized.");
                 return;
             }
 
             if (Application.platform == RuntimePlatform.IPhonePlayer)
             {
-                Debug.Log("RestorePurchases started ...");
+                Log.Info("RestorePurchases started ...");
                 ON_RESTORE_PURCHASES?.Invoke();
 
                 var apple = extension.GetExtension<IAppleExtensions>();
@@ -135,12 +135,12 @@ namespace Game.Managers
                 apple.RestoreTransactions((result, info) =>
                 {
                     ON_RESTORE_PURCHASES_END?.Invoke(info);
-                    Debug.Log("RestorePurchases continuing: " + result + ". If no further messages, no purchases available to restore.");
+                    Log.Info("RestorePurchases continuing: " + result + ". If no further messages, no purchases available to restore.");
                 });
             }
             else
             {
-                Debug.Log("RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
+                Log.Info("RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
             }
         }
 
@@ -151,7 +151,7 @@ namespace Game.Managers
 
         public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
         {
-            Debug.Log("IAP. Initialize success!");
+            Log.Info("IAP. Initialize success!");
 
             this.controller = controller;
             this.extension = extensions;
@@ -210,12 +210,12 @@ namespace Game.Managers
 
         public void OnInitializeFailed(InitializationFailureReason error)
         {
-            Debug.Log("Initialize failed due to: " + error);
+            Log.Info("Initialize failed due to: " + error);
         }
 
         public void OnInitializeFailed(InitializationFailureReason error, string message)
         {
-            Debug.Log("Initialize failed due to: " + error);
+            Log.Info("Initialize failed due to: " + error);
         }
 
         public Product GetMetaDataById(string id)
