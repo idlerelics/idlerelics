@@ -79,6 +79,7 @@ namespace Game.Core.UI
         public sealed override void InternalShow()
         {
             _view.IsActive = true;
+            _isShowed = true;
             Show();
         }
 
@@ -86,6 +87,7 @@ namespace Game.Core.UI
         public sealed override void InternalHide()
         {
             _view.IsActive = false;
+            _isShowed = false;
             Hide();
         }
 
