@@ -42,6 +42,7 @@ namespace Game.Level.Reception
 
         private ReceptionController _reception;   // The reception entity controller
         private int _receptionLvl;                // Cached level to detect upgrades
+        private readonly List<ItemController> _tempItems = new List<ItemController>();
 
         /// <summary>
         /// Constructor: initializes the dictionaries that track desk-to-room
@@ -162,7 +163,10 @@ namespace Game.Level.Reception
         private void OnTick()
         {
             // Check non-receptionist desk items for available rooms
-            foreach (var item in _itemsMap.Keys.ToList())
+            // Uses cached list because callbacks can modify _itemsMap
+            _tempItems.Clear();
+            _tempItems.AddRange(_itemsMap.Keys);
+            foreach (var item in _tempItems)
             {
                 var existingRoom = _itemsMap[item];
                 var availableRoom = _gameManager.FindAvailableRoom();
@@ -189,7 +193,9 @@ namespace Game.Level.Reception
             }
 
             // For receptionist-staffed desks, count down automatically each frame
-            foreach (var item in _receptionistMap.Keys.ToList())
+            _tempItems.Clear();
+            _tempItems.AddRange(_receptionistMap.Keys);
+            foreach (var item in _tempItems)
             {
                 var existingRoom = _itemsMap[item];
                 if (existingRoom != null)

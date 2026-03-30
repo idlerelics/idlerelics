@@ -56,6 +56,7 @@ namespace Game.UI.Hud
 
 		// Tracks products currently on cooldown, with their remaining delay in seconds
 		private Dictionary<ShopProductView, float> _productDelayMap;
+		private readonly List<ShopProductView> _tempProducts = new List<ShopProductView>();
 
 		public ShopHudMediator()
 		{
@@ -154,7 +155,9 @@ namespace Game.UI.Hud
 		/// </summary>
 		private void OnTick()
 		{
-			foreach (var product in _productDelayMap.Keys.ToList())
+			_tempProducts.Clear();
+			_tempProducts.AddRange(_productDelayMap.Keys);
+			foreach (var product in _tempProducts)
 			{
 				var delay = _productDelayMap[product];
 				delay -= Time.deltaTime;
@@ -484,7 +487,9 @@ namespace Game.UI.Hud
 		/// </summary>
 		private void OnApplicationFocus()
 		{
-			foreach (var product in _productDelayMap.Keys.ToList())
+			_tempProducts.Clear();
+			_tempProducts.AddRange(_productDelayMap.Keys);
+			foreach (var product in _tempProducts)
 			{
 				var delay = GetCurrentDelay(product.Config.ID);
 				UpdateProductDelay(product, delay);

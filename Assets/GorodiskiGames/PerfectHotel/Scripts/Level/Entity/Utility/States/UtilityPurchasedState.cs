@@ -16,6 +16,7 @@ namespace Game.Level.Utility.UtilityStates
         [Inject] private Timer _timer;
 
         private readonly Dictionary<ItemController, float> _itemsMap;
+        private readonly List<ItemController> _tempKeys = new List<ItemController>();
 
         public UtilityPurchasedState()
         {
@@ -47,7 +48,9 @@ namespace Game.Level.Utility.UtilityStates
 
         private void OnTick()
         {
-            foreach (var inventory in _itemsMap.Keys.ToList())
+            _tempKeys.Clear();
+            _tempKeys.AddRange(_itemsMap.Keys);
+            foreach (var inventory in _tempKeys)
             {
                 float value = _itemsMap[inventory];
 

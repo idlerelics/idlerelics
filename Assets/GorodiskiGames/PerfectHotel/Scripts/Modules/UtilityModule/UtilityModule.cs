@@ -330,23 +330,20 @@ namespace Game.Modules.Utility
 
         private void OnTick()
         {
-            foreach (var staff in _staffAvailableWithInventory.Keys.ToList())
+            foreach (var pair in _staffAvailableWithInventory)
             {
-                var inventory = _staffAvailableWithInventory[staff];
-                inventory.View.Position = Vector3.Lerp(inventory.View.Position, staff.InventoryHolder.transform.position, _inventoryLerpSpeed);
+                pair.Value.View.Position = Vector3.Lerp(pair.Value.View.Position, pair.Key.InventoryHolder.transform.position, _inventoryLerpSpeed);
             }
 
-            foreach (var staff in _staffWalkWithInventory.Keys.ToList())
+            foreach (var pair in _staffWalkWithInventory)
             {
-                var inventory = _staffWalkWithInventory[staff];
-                inventory.View.Position = Vector3.Lerp(inventory.View.Position, staff.InventoryHolder.transform.position, _inventoryLerpSpeed);
+                pair.Value.View.Position = Vector3.Lerp(pair.Value.View.Position, pair.Key.InventoryHolder.transform.position, _inventoryLerpSpeed);
             }
 
-            int index = 0;
-            foreach (var inventory in _gameManager.Player.Model.Inventories.ToList())
+            var inventories = _gameManager.Player.Model.Inventories;
+            for (int i = 0; i < inventories.Count; i++)
             {
-                inventory.View.Position = Vector3.Lerp(inventory.View.Position, _gameManager.Player.GetInventoryPosition(index), _inventoryLerpSpeed);
-                index++;
+                inventories[i].View.Position = Vector3.Lerp(inventories[i].View.Position, _gameManager.Player.GetInventoryPosition(i), _inventoryLerpSpeed);
             }
         }
 
