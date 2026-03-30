@@ -167,6 +167,22 @@ namespace Game.UI.Hud
             _view.CloseButton.onClick.RemoveListener(OnCloseButtonClick);
             _view.SelectButton.onClick.RemoveListener(OnSelectButtonClick);
 
+            // Clean up the render-to-texture camera and its RenderTexture
+            if (_rawCameraView != null)
+            {
+                var rt = _rawCameraView.Camera.targetTexture;
+                _rawCameraView.Camera.targetTexture = null;
+                if (rt != null)
+                {
+                    rt.Release();
+                    Object.Destroy(rt);
+                }
+                GameObject.Destroy(_rawCameraView.gameObject);
+                _rawCameraView = null;
+            }
+            _view.RawImage.texture = null;
+            _view.RawImage.gameObject.SetActive(false);
+
             // Destroy all instantiated slot objects and clean up
             foreach (var slot in _slots.ToList())
             {
