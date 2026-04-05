@@ -30,34 +30,90 @@ No existing game combines the MPH walk-around-and-manage loop with archaeology e
 ## 2. Core Gameplay Loop
 
 ### Primary Loop
-1. Workers arrive at Base Camp and get assigned to a dig chamber
-2. Workers excavate rubble but deplete supplies (water, tools, torches)
-3. Player delivers supplies from the supply station to workers in chambers
-4. Workers uncover artifacts (randomized rarity roll)
-5. Player collects artifacts and carries them to Base Camp for valuation
-6. Currency earned is used to unlock new sealed chambers
-7. Repeat, going deeper into the dig site
+1. Workers arrive at Base Camp **with their own tools** and register at the desk
+2. Workers are assigned to a tomb chamber and begin excavating
+3. As they dig, **needs appear** (thirst, hunger) — shown by an icon above their head
+4. Player (or an NPC supply runner) grabs the correct supply from the **storeroom** and delivers it
+5. Worker continues digging — **gold/artifacts trickle out** at the chamber door over time
+6. Periodically, workers carry accumulated findings to the **Findings Deposit Counter**
+7. Player collects from the deposit counter (micro-reveal: what rarity did they find?)
+8. Artifacts slot into the **Collection Album**; duplicates convert to currency
+9. Currency earned is used to unlock new sealed chambers or upgrade existing ones
+10. When excavation is complete, the worker leaves the site
+11. Repeat, going deeper into the dig site
+
+### Worker Flow (Detailed)
+Workers arrive with their own pickaxe/tools — the player does NOT need to equip them. Registration at the base camp desk serves as a pacing gate (upgrade the desk to register faster). Once assigned, workers enter a chamber and start excavating immediately. The player's active involvement comes from **supply delivery**: when a need icon pops up (water canteen, food), the player runs to the storeroom, picks up the right item, and delivers it. If not delivered, the worker **pauses** (no penalty, just lost time — keeps it casual-friendly). An NPC supply runner can be unlocked later to automate deliveries.
+
+### Multi-Worker Chambers
+Chambers support multiple workers based on room level:
+- **Level 1:** 1 worker slot
+- **Level 2:** 2 worker slots
+- **Level 3:** 3 worker slots (maximum)
+
+More workers = faster excavation + faster artifact trickle, but also more supply needs popping up simultaneously. A level 3 chamber becomes a high-maintenance, high-reward engine. This creates a strategic choice: unlock new chambers (breadth) vs. upgrade existing ones (depth). Workers are visually staggered inside the chamber — one near the entrance, one mid-room, one at the back wall.
+
+### Progressive Chamber Reveal
+Chambers are **not fully visible** when first purchased. They start covered in dirt and rubble, and the artwork is revealed progressively as excavation work accumulates. Four visual stages:
+
+1. **Sealed** — Completely covered in dirt and rubble. Cracks in stone, indistinct shapes. Player can barely tell what's underneath.
+2. **Partially Cleared** — Outlines emerge. A pillar top, the edge of a wall carving. Workers have made a dent.
+3. **Mostly Excavated** — Architecture clearly visible: walls, floor patterns, shelf niches, sarcophagus shapes. Room has identity. Still dusty corners and debris.
+4. **Fully Revealed** — Clean, beautiful, detailed. The "wow" moment. Triggers a small celebration effect (camera nudge, sparkle, discovery sound).
+
+The reveal is **permanent progress** — it never resets. Each worker cycle peels back more of the chamber. Multi-worker rooms with higher levels clear stages faster, giving a visible payoff for upgrade investment. Late-game, looking at a fully excavated site with every chamber revealed creates a satisfying visual trophy.
+
+**Implementation:** Swap between prefab variants per stage, or toggle overlay meshes (dirt layer, rubble layer, dust layer) on/off. Build the clean room first, then add cover meshes on top.
+
+### Findings Deposit Counter (Replaces MPH Bathroom)
+The deposit counter replaces MPH's bathroom mechanic. Instead of a bathroom break, workers periodically carry their accumulated small finds (pottery shards, coins, bone fragments) to a **sorting table / collection crate** near base camp.
+
+**How it works:**
+- Workers' internal "findings inventory" fills up as they dig
+- When full, they leave the chamber and walk to the deposit counter
+- They drop off findings and return to excavating
+- The deposit counter has **limited sorting slots** — when full, workers queue up and wait
+- The player taps the counter to collect (this is the primary money collection point)
+- Each collection triggers a **micro-reveal**: the artifact tumbles out, glows with its rarity color
+
+**Upgrades:**
+- More sorting slots (reduces worker queue times)
+- Faster sorting speed
+- Visual upgrade: from a basic crate to a proper cataloging desk
+
+**Design rationale:** This replaces *both* the bathroom mechanic (secondary facility workers must visit) *and* partially replaces cash pile collection (centralized pickup point instead of running to every chamber door). It also feeds directly into the Collection Album and monetization systems.
 
 ### Mechanic Mapping from My Perfect Hotel
 
 | MPH Mechanic | Lost Chambers Equivalent | Notes |
 |---|---|---|
-| Reception desk | Base Camp | Workers register and get assigned |
-| Hotel rooms | Tomb chambers | Excavated one by one, artifact loot rolls |
-| Guests | Expedition workers | Arrive, dig, need supplies. NO tourists. |
-| Room cleaning | Excavation/supply delivery | Workers need water, tools, torches |
-| Cash piles | Artifact discoveries | Randomized rarity replaces flat cash |
+| Reception desk | Base Camp desk | Workers register and get assigned. Pacing gate. |
+| Hotel rooms | Tomb chambers | Excavated over time, multi-worker (up to 3), progressive visual reveal |
+| Guests | Expedition workers | Arrive WITH own tools, dig, develop needs (thirst/hunger). NO tourists. |
+| Room cleaning | Supply delivery (mid-dig) | Needs pop up as icons above workers' heads. Player delivers from storeroom. |
+| Cash piles | Findings deposit counter | Workers carry findings to a central counter. Player collects there. |
+| Toilet/bathroom | Findings deposit counter | Workers must offload findings periodically. Counter has limited slots. |
+| Room upgrade (fee increase) | Chamber level (worker capacity) | Lvl 1 = 1 worker, Lvl 2 = 2, Lvl 3 = 3. More workers = more output + more needs. |
 | Elevator | Tunnel/passage system | Rope pulleys, mine carts between levels |
 | Hotel levels | Expedition sites | Each is a unique location with unique mechanics |
-| Inventory (towels) | Supplies (canteens, pickaxes, torches) | Three types vs one = more depth |
-| Cleaner NPC | Excavation crew | Auto-clears debris |
+| Inventory (towels) | Supplies (water, food) | Workers arrive with tools. Player delivers consumables only. |
+| Cleaner NPC | NPC supply runner | Automates supply delivery to workers |
 | Loader NPC | Artifact transporter | Auto-carries relics to base camp |
 
 ### Supply System
-Player carries up to 3 items. Three supply types:
-- **Water Canteens:** Most frequent need. Workers dehydrate and stop working without water.
-- **Tools (Pickaxes/Brushes):** Medium frequency. Broken tools slow excavation to near zero.
-- **Torches:** Required in dark deep chambers. Workers refuse to enter without light. Introduced gradually as player goes deeper.
+Workers arrive with their own excavation tools (pickaxe, brushes). The player only delivers **consumable supplies** when workers develop needs mid-excavation. Player carries up to 3 items.
+
+**Need types (shown as icons above worker heads):**
+- **Water/Drink:** Most frequent need. Worker pauses until delivered.
+- **Food:** Medium frequency. Worker pauses until delivered.
+- **Torches:** Required in dark deep chambers. Introduced gradually as player digs deeper into a site. Workers in deep chambers periodically need torch replacement.
+
+**If a need is not met:** The worker simply pauses — no penalty, no frustration mechanic. This keeps the game casual-friendly. The cost is lost excavation time only.
+
+**NPC Supply Runner (upgrade unlock):**
+- Early game: player does all deliveries manually
+- Mid game: unlock one NPC runner who handles one storeroom automatically
+- Late game: multiple runners, bigger carrying capacity
 
 ---
 
@@ -105,13 +161,26 @@ Chamber layouts are hand-crafted and fixed. Artifacts found inside are randomize
 Each site has its own themed artifact pool (Egyptian scarabs vs. Jungle jade figurines, etc.).
 
 ### Discovery Reveal Moment
-When a chamber is fully excavated for the first time:
+When a chamber is fully excavated for the first time (stage 4 — Fully Revealed):
 1. Sealed wall crumbles with particle effect (dust, rubble)
 2. Golden light spills out from behind the wall
 3. Artifact revealed with rarity-appropriate visual flourish
 4. Brief popup: artifact name, rarity, value
 
 This is the emotional core of the game. Must feel rewarding every time, never routine.
+
+### Collection Album
+Every artifact the player collects slots into a **Collection Album** — a museum-style catalog organized by sets.
+
+**How it works:**
+- Each expedition site has themed artifact sets (e.g., "Pharaoh's Burial Chamber" set: golden scarab, canopic jar, ceremonial mask, ankh amulet)
+- Completing a full set unlocks a **permanent bonus** (faster excavation, better rarity odds, cosmetic reward, new base camp decoration)
+- Every artifact drop matters — even common ones — because the player is always working toward completing a set
+- **Duplicates** auto-convert to gold currency (common) or can be "sold to a museum" for premium currency (rare+)
+
+**Why this works for retention:** The album gives long-term goals beyond just unlocking chambers. Players keep coming back to chase missing pieces. The "almost complete" set feeling is a powerful motivator.
+
+**Monetization tie-in:** When a player is one or two pieces away from completing a set, they can purchase a "Mystery Expedition Crate" that guarantees an artifact from a specific collection. This is the primary IAP driver — not random loot boxes, but targeted help for a specific goal the player already cares about. Framed as "funding a special expedition" to find the missing piece.
 
 ---
 
@@ -170,6 +239,8 @@ Stone/parchment textures. Golden artifact currency icon. Sandstone progress bars
 - **Premium Currency:** Speed up timers, cosmetic character skins
 - **Starter Pack:** Discounted bundle (currency + ad removal + exclusive cosmetic)
 - **Character Skins:** Cosmetic outfit variations, no gameplay advantage
+- **Mystery Expedition Crate:** Guarantees an artifact from a specific collection set. Primary IAP driver — targets players who are close to completing a set. Framed as "funding a special expedition" rather than a random loot box.
+- **Relic Exchange:** Trade duplicate artifacts (using premium currency) for a specific missing piece. Safety valve for bad RNG.
 
 ---
 
@@ -178,23 +249,35 @@ Stone/parchment textures. Golden artifact currency icon. Sandstone progress bars
 ### Phase 1 — Core Re-theme (config only)
 Update GameConfig timing values. Test existing MPH loop as archaeology with placeholder assets.
 
-### Phase 2 — Multiple Supply Types
-Extend InventoryType enum. Add RequiredSupplyType to items. Type-checking in delivery routing. **Hardest phase.**
+### Phase 2 — Revised Worker Flow
+Workers arrive with tools, register at desk, go to chamber. Remove the need for player to equip workers. Adjust worker lifecycle states. Implement need icons (thirst/hunger) that appear mid-excavation. Player delivers consumable supplies from storeroom.
 
-### Phase 3 — Artifact Loot System
-New ArtifactModule with rarity tables. Hook into room state transitions. Replace flat StayFee with loot rolls.
+### Phase 3 — Findings Deposit Counter
+Replace toilet/bathroom mechanic with deposit counter. Workers carry findings to counter periodically. Player collects from counter. Implement limited sorting slots and upgrade path.
 
-### Phase 4 — Discovery Reveal
-DOTween sequence on first chamber unlock. Particles + camera + UI popup.
+### Phase 4 — Multi-Worker Chambers & Room Levels
+Chamber levels 1-3 controlling worker capacity. Visual staggering of workers inside chambers. Supply needs scale with worker count.
 
-### Phase 5 — Branching System
+### Phase 5 — Progressive Chamber Reveal
+Four visual stages (sealed → partially cleared → mostly excavated → fully revealed). Permanent progress. Tied to cumulative excavation work.
+
+### Phase 6 — Artifact Loot System & Collection Album
+New ArtifactModule with rarity tables. Micro-reveal at deposit counter. Album UI with sets, completion tracking, and permanent bonuses. Duplicate handling (auto-convert to currency).
+
+### Phase 7 — Discovery Reveal Sequence
+DOTween sequence when chamber reaches fully revealed state. Particles + camera + UI popup.
+
+### Phase 8 — Branching System
 BranchId/BranchDependency in RoomConfig. Branch completion checks. Hidden-to-purchasable transitions.
 
-### Phase 6 — Second Character
+### Phase 9 — NPC Supply Runner
+Unlockable NPC that automates supply delivery. Upgrade path: number of runners, carrying capacity.
+
+### Phase 10 — Second Character
 Second PlayerConfig entry. Duplicate model with different material for now.
 
-### Phase 7 — Site 2 (Jungle Temple)
+### Phase 11 — Site 2 (Jungle Temple)
 New scene, different layout, harder configs, ElevatorController transition.
 
 ### Alpha Target
-Two sites (Pyramid + Jungle Temple), full core loop, branching working, both characters, discovery reveal. Enough for peer testing.
+One site (Pyramid), full revised core loop (worker flow, deposit counter, multi-worker rooms, progressive reveal, album), branching working, one character. Enough for peer testing.

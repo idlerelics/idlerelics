@@ -30,7 +30,8 @@ namespace Game.Config
         [Min(0)] public int TargetPurchaseProgress;   // Progress needed before this room can be purchased
         public int PurchaseProgressReward;            // Progress earned when purchasing this room
         public int UpdateProgressReward;              // Progress earned when upgrading this room
-        public float StayDuration;                    // How long a guest stays in this room (seconds)
+        [Tooltip("Fallback stay duration if not set per-level. Used during migration.")]
+        public float StayDuration;                    // Legacy: will be replaced by per-level StayDuration
         public RoomLvlConfig[] Lvls;                  // Configuration for each upgrade level
     }
 
@@ -44,7 +45,8 @@ namespace Game.Config
         public int PriceUpdate;             // Cost to upgrade to this level
         public int TargetUpdateProgress;    // Progress needed to unlock this upgrade
         public float CleaningTime;          // How long it takes to clean at this level (seconds)
-        public int EntranceFee;             // One-time fee paid when a guest checks in
-        public int StayFee;                 // Fee earned while the guest stays
+        public int EntranceFee;             // One-time fee paid when a worker enters
+        public int StayFee;                 // Cash earned during excavation (trickled over StayDuration)
+        public float StayDuration;          // How long a worker excavates at this level (seconds). 0 = use RoomConfig fallback.
     }
 }

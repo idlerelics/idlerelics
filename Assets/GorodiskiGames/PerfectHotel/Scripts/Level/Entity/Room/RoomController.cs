@@ -154,7 +154,7 @@ namespace Game.Level.Room
             UpdateModel();
         }
 
-        /// <summary>Sets room values (fees, cleaning time) based on the current level.</summary>
+        /// <summary>Sets room values (fees, cleaning time, excavation duration) based on the current level.</summary>
         public override void GetUpdatedValues()
         {
             TargetUpdateProgress = Lvls[LvlNext].TargetUpdateProgress;
@@ -162,6 +162,10 @@ namespace Game.Level.Room
             CleaningTime = Lvls[Lvl].CleaningTime;
             StayFee = Lvls[Lvl].StayFee;
             EntranceFee = Lvls[Lvl].EntranceFee;
+
+            // Per-level StayDuration: use level config if set, otherwise keep the fallback from RoomConfig
+            if (Lvls[Lvl].StayDuration > 0f)
+                StayDuration = Lvls[Lvl].StayDuration;
         }
 
         public override int GetLvlLength()
@@ -195,6 +199,8 @@ namespace Game.Level.Room
 
         public ItemController ItemCashPile => _itemCashPile;
         public ItemController ItemBuyUpdate => _itemBuyUpdate;
+
+        public Action ON_EXCAVATION_COMPLETE;  // Fired when excavation timer ends, unit should leave
 
         public AreaController Area { get; internal set; }
         public bool IsAvailable { get; internal set; }

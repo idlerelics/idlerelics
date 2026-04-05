@@ -4,6 +4,11 @@ using UnityEngine;
 
 namespace Game.Level.Unit
 {
+    /// <summary>
+    /// State for when a worker is inside a chamber excavating.
+    /// Instead of running its own timer, listens to the room's ON_EXCAVATION_COMPLETE event.
+    /// The room is the single source of truth for excavation timing.
+    /// </summary>
     public sealed class UnitInRoomState : UnitState
     {
         private const float _unitSleepDistance = -1.5f;
@@ -11,7 +16,6 @@ namespace Game.Level.Unit
         [Inject] private LevelView _levelView;
         [Inject] private GameManager _gameManager;
 
-        private float _stayDuration;
         private RoomController _room;
         private Vector3 _initLocalPosition;
 
@@ -22,7 +26,6 @@ namespace Game.Level.Unit
                 _unit.SwitchToState(new UnitIdleState());
                 return;
             }
-            _stayDuration = _room.Model.StayDuration;
 
             _unit.View.transform.eulerAngles = _room.View.CustomerPosition.eulerAngles;
 
@@ -32,22 +35,20 @@ namespace Game.Level.Unit
             _unit.View.NavMeshAgent.enabled = false;
             _unit.View.Sleep();
 
-            _timer.TICK += OnTick;
+            // Listen to the room — it tells us when excavation is done
+            _room.ON_EXCAVATION_COMPLETE += OnExcavationComplete;
         }
 
         public override void Dispose()
         {
             _unit.View.LocalTransform.localPosition = _initLocalPosition;
 
-            _timer.TICK -= OnTick;
+            if (_room != null)
+                _room.ON_EXCAVATION_COMPLETE -= OnExcavationComplete;
         }
 
-        private void OnTick()
+        private void OnExcavationComplete()
         {
-            _stayDuration -= Time.deltaTime;
-
-            if (_stayDuration > 0f) return;
-
             _gameManager.CustomerRoomMap.Remove(_unit);
 
             var toilet = _gameManager.FindToilet(_unit.Area);

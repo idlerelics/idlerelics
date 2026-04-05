@@ -18,51 +18,80 @@ When working on this codebase, always think in archaeology terms. The code still
 | Code Name (Legacy) | Game Concept | Description |
 |---|---|---|
 | Hotel | Expedition Site | Each "hotel" is a dig site (Pyramid, Jungle Temple, etc.) |
-| Room | Tomb Chamber | Excavated one by one, contain artifacts |
-| Guest/Customer | Expedition Worker | Arrive at base camp, get assigned to chambers, dig |
-| Reception | Base Camp | Where workers register and get assigned |
-| Cleaning | Supply Delivery | Workers need water, tools, torches — player delivers |
-| Cash Pile | Artifact Discovery | Randomized rarity loot rolls replace flat cash |
+| Room | Tomb Chamber | Excavated over time, supports multi-worker (Lvl 1-3), progressive visual reveal |
+| Room Level | Worker Capacity | Lvl 1 = 1 worker, Lvl 2 = 2, Lvl 3 = 3 max |
+| Guest/Customer | Expedition Worker | Arrive WITH own tools, register at desk, dig, develop needs (thirst/hunger) |
+| Reception | Base Camp Desk | Where workers register. Pacing gate (upgrade = faster registration) |
+| Cleaning | Supply Delivery (mid-dig) | Need icons appear above workers. Player delivers water/food from storeroom |
+| Cash Pile | Artifact Trickle | Gold/artifacts trickle out at chamber door as workers dig |
+| Toilet | Findings Deposit Counter | Workers carry findings to central counter. Player collects there. Limited sorting slots |
 | Elevator | Tunnel/Passage | Transitions between expedition sites |
-| Toilet | Rest/Supply Station | Workers need rest/resupply, facility depletes and needs restocking |
-| Cleaner NPC | Excavation Crew | Automated workers clearing debris |
+| Cleaner NPC | NPC Supply Runner | Automates supply delivery to workers |
 | Loader NPC | Artifact Transporter | Automated workers moving relics to base camp |
-| Room Cleaning Time | Supply Need Duration | How often workers need new supplies |
-| Stay Duration | Excavation Time | How long a worker digs before finding something |
-| Stay Fee | Artifact Value | Cash earned per excavation (now randomized by rarity) |
+| Room Cleaning Time | Supply Need Interval | How often workers develop needs (thirst/hunger) |
+| Stay Duration | Excavation Time | How long a worker digs before excavation is complete and they leave |
+| Stay Fee | Artifact Value | Base value for rarity roll (randomized per excavation) |
 | Area/Floor | Dig Zone | Sections of the site unlocked progressively |
 
 ## New Systems to Build
 
-### 1. Multiple Supply Types (extends existing Inventory system)
-- Add `InventoryType` entries: `WaterCanteen`, `Pickaxe`, `Torch`
-- Chambers specify `RequiredSupplyType` — player must deliver the correct type
-- Extends `UtilityModule` delivery routing with type-checking
-- Key files: `Level/Inventory/`, `Modules/UtilityModule/`, `Level/Entity/Item/ItemToiletController.cs`
+### 1. Revised Worker Flow
+- Workers arrive WITH own tools (no player equipping needed)
+- Register at base camp desk (pacing gate, upgradable)
+- Enter chamber and start excavating immediately
+- Mid-dig: need icons (thirst/hunger) appear above workers' heads
+- Player delivers consumable supplies (water, food) from storeroom
+- If need not met: worker pauses (no penalty, casual-friendly)
+- Key files: `Level/Units/`, `Modules/ReceptionModule/`, `Level/Entity/Item/`
 
-### 2. Artifact Loot System (new ArtifactModule)
-- Hooks into room state transition: `RoomOccupiedState` → `RoomUsedState`
-- Instead of flat `StayFee`, rolls on a rarity table (70% common, 20% rare, 8% epic, 2% legendary)
-- Multiplier per tier applied to base value
-- New `ArtifactConfig` ScriptableObject per site with weighted tiers
-- Creates UI popup showing artifact name, rarity, value
-- Key files: new `Modules/ArtifactModule/`, hooks into `Level/Entity/Room/States/RoomOccupiedState.cs`
+### 2. Findings Deposit Counter (replaces Toilet/Bathroom)
+- Workers carry accumulated small finds to a central sorting table near base camp
+- Counter has limited sorting slots — workers queue when full
+- Player taps counter to collect (primary money collection point)
+- Each collection = micro-reveal with rarity color glow
+- Upgradable: more slots, faster sorting
+- Key files: replaces/extends `Modules/ToiletModule/`, `Level/Entity/Toilet/`
 
-### 3. Discovery Reveal Sequence (new feature)
-- Triggers on first-time chamber unlock (`RoomReadyToPurchaseState` → `RoomAvailableState`)
+### 3. Multi-Worker Chambers (Room Levels = Worker Capacity)
+- Level 1 = 1 worker, Level 2 = 2, Level 3 = 3 (max)
+- More workers = faster excavation + more supply needs
+- Workers visually staggered inside chamber
+- Key files: `Level/Entity/Room/`, `Config/RoomConfig.cs`
+
+### 4. Progressive Chamber Reveal
+- 4 visual stages: Sealed → Partially Cleared → Mostly Excavated → Fully Revealed
+- Permanent progress (never resets)
+- Tied to cumulative excavation work across all worker sessions
+- Implementation: toggle overlay meshes (dirt/rubble/dust layers) or swap prefab variants
+- Key files: `Level/Entity/Room/RoomView.cs`, `Level/Entity/Room/States/`
+
+### 5. Artifact Loot System & Collection Album
+- Rarity roll on collection: 70% common, 20% rare, 8% epic, 2% legendary
+- Artifacts slot into a Collection Album organized by themed sets per site
+- Completing a set = permanent bonus (faster excavation, better odds, cosmetics)
+- Duplicates auto-convert to currency
+- New `ArtifactModule` + `ArtifactConfig` ScriptableObject
+- Key files: new `Modules/ArtifactModule/`
+
+### 6. Discovery Reveal Sequence
+- Triggers when chamber reaches Fully Revealed state (stage 4)
 - DOTween sequence: camera zoom, particle burst, UI popup
-- First excavation in new chamber could guarantee higher rarity
 - Uses existing DOTween dependency
 - Key files: new `Modules/DiscoveryModule/` or extend `RoomController`
 
-### 4. Branching System (extends existing room/area unlock)
+### 7. Branching System (extends existing room/area unlock)
 - Add `BranchId` (int) and `BranchDependency` (int, -1 for none) to room configs
 - Group chambers into branches
 - When all chambers in a branch are completed, dependent branch transitions from `RoomHiddenState` to `RoomReadyToPurchaseState`
 - 1-2 branching points per site maximum
 - Key files: extend `Config/RoomConfig.cs`, `Modules/EntityModule.cs`
 
-### 5. Second Playable Character
+### 8. NPC Supply Runner
+- Unlockable NPC that automates supply delivery
+- Upgrade path: number of runners, carrying capacity
+- Key files: extends `Level/Entity/Cleaner/` pattern
+
+### 9. Second Playable Character
 - `PlayerConfig` system already supports multiple characters via `GameConfig.PlayersMap`
 - Add second entry with different mesh, icon, sex
 - Character selection exists via `PlayerSelectionState`
@@ -77,39 +106,45 @@ When working on this codebase, always think in archaeology terms. The code still
 - Test the existing MPH loop as an archaeology game with placeholder hotel assets
 - No code changes — config and balance only
 
-### Phase 2: Multiple Supply Types
-- Extend `InventoryType` enum (WaterCanteen, Pickaxe, Torch)
-- Modify `UtilityController`/`UtilityView` for multiple supply stations
-- Add `RequiredSupplyType` to item controllers
-- Add type-checking in `UtilityModule` delivery routing
-- Make player pickup type-aware
-- THIS IS THE HARDEST PHASE — touches inventory, utility, items, player states
+### Phase 2: Revised Worker Flow
+- Workers arrive with own tools, register at desk, go to chamber
+- Implement need icons (thirst/hunger) mid-excavation
+- Player delivers consumable supplies (water, food) from storeroom
+- Touches: `Level/Units/`, `Modules/ReceptionModule/`, supply delivery logic
 
-### Phase 3: Artifact Loot System
-- Create `ArtifactModule` with rarity tables
-- Create `ArtifactConfig` ScriptableObject
-- Hook into `RoomOccupiedState` → `RoomUsedState` transition
-- Replace flat `StayFee` with randomized loot roll
-- Create UI popup for artifact reveal
+### Phase 3: Findings Deposit Counter
+- Replace toilet/bathroom with deposit counter
+- Workers carry findings to counter periodically, player collects there
+- Limited sorting slots, upgrade path
+- Touches: `Modules/ToiletModule/`, `Level/Entity/Toilet/`
 
-### Phase 4: Discovery Reveal
-- DOTween sequence on first chamber unlock
-- Particle effects, camera interaction, UI popup
-- Guarantee higher rarity on first excavation per chamber
+### Phase 4: Multi-Worker Chambers & Room Levels
+- Chamber levels 1-3 = worker capacity 1-3
+- Visual staggering of workers inside chambers
+- Supply needs scale with worker count
 
-### Phase 5: Branching System
-- Add BranchId/BranchDependency to RoomConfig
-- Branch completion checking in EntityModule
-- Design first branching point in Pyramid site
+### Phase 5: Progressive Chamber Reveal
+- 4 visual stages (sealed → fully revealed), permanent progress
+- Toggle overlay meshes or swap prefab variants
 
-### Phase 6: Second Character
-- Add second PlayerConfig entry
-- Use duplicate model with different material for now
+### Phase 6: Artifact Loot System & Collection Album
+- `ArtifactModule` with rarity tables + micro-reveal at deposit counter
+- Album UI with themed sets, completion bonuses, duplicate handling
 
-### Phase 7: Site 2 — Jungle Temple
-- New Unity scene with different chamber layout
-- New RoomConfig values (harder, higher rewards)
-- ElevatorController transitions from Site 1 → Site 2
+### Phase 7: Discovery Reveal Sequence
+- DOTween sequence when chamber reaches fully revealed state
+
+### Phase 8: Branching System
+- BranchId/BranchDependency in RoomConfig, branch completion checks
+
+### Phase 9: NPC Supply Runner
+- Unlockable automated delivery NPC, upgrade path
+
+### Phase 10: Second Character
+- Second PlayerConfig entry, duplicate model with different material
+
+### Phase 11: Site 2 — Jungle Temple
+- New Unity scene, different layout, harder configs
 
 ## Architecture
 
@@ -261,5 +296,5 @@ All paths relative to `Assets/GorodiskiGames/PerfectHotel/Scripts/`.
 See `Docs/GAME_DESIGN.md` for the full game design document including: expedition sites, artifact rarity system, branching system, character designs, art direction, and monetization strategy.
 
 ## Git
-- Remote: https://github.com/wizdorm/wizdorm.git
+- Remote: https://github.com/idlerelics/idlerelics.git
 - Branch: master
