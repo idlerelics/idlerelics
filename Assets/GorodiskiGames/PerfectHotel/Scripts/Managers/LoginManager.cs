@@ -66,13 +66,12 @@ namespace Game.Managers
 
         /// <summary>
         /// Saves the login date to PlayerPrefs.
-        /// PlayerPrefs.Save() ensures the data is written to disk immediately
-        /// (otherwise it might only save when the app closes).
+        /// Uses the deferred save pattern — the actual disk flush happens
+        /// via GameModel.FlushIfDirty() on the periodic timer or app pause/quit.
         /// </summary>
         private void SaveLoginDate(string date)
         {
             PlayerPrefs.SetString(GameConstants.kLoginDate, date);
-            PlayerPrefs.Save();
         }
     }
 }

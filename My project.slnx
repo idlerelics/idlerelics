@@ -1,0 +1,7 @@
+﻿<Solution>
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Assembly-CSharp-firstpass.csproj" />
+  <Project Path="Unity.Advertisement.IosSupport.Editor.csproj" />
+  <Project Path="Unity.Advertisement.IosSupport.csproj" />
+  <Project Path="GoogleMobileAds.Editor.csproj" />
+</Solution>

@@ -1,12 +1,115 @@
-# WizDorm - Idle Magic School
+# Lost Chambers: Idle Relics
 
-## Project Overview
-An idle management game inspired by **My Perfect Hotel**, set in a **Wizard School** (WizDorm). Players manage a magical dormitory — assigning rooms to wizard students, collecting currency, upgrading facilities, and expanding the school.
+## IMPORTANT: Theme Change
+This project was originally "WizDorm - Idle Magic School" (wizard school dorm) and before that a "Perfect Hotel" clone. It is now being re-themed to **Lost Chambers: Idle Relics** — an archaeology exploration idle management game (Indiana Jones-style). The "PerfectHotel" folder naming is legacy. All new work should use archaeology terminology.
+
+## Game Concept
+An idle management game where you play as a lead archaeologist exploring ancient sites (pyramids, jungle temples, etc.). You manage expedition workers, deliver supplies, excavate sealed tomb chambers, and collect valuable artifacts. Inspired by My Perfect Hotel but with a narrative reason for room unlocking: archaeological discovery.
 
 - **Engine:** Unity 6 (6000.3.11f1)
 - **Render Pipeline:** URP 2D
 - **Target Platform:** Mobile (iOS & Android), portrait orientation
-- **Bundle Version:** 0.0.1 (early development)
+- **Art Style:** Cartoony & colorful 3D (Supercell-quality), warm golden lighting, chunky stylized proportions
+
+## Theme Mapping (Hotel → Archaeology)
+
+When working on this codebase, always think in archaeology terms. The code still uses hotel naming but the GAME is archaeology:
+
+| Code Name (Legacy) | Game Concept | Description |
+|---|---|---|
+| Hotel | Expedition Site | Each "hotel" is a dig site (Pyramid, Jungle Temple, etc.) |
+| Room | Tomb Chamber | Excavated one by one, contain artifacts |
+| Guest/Customer | Expedition Worker | Arrive at base camp, get assigned to chambers, dig |
+| Reception | Base Camp | Where workers register and get assigned |
+| Cleaning | Supply Delivery | Workers need water, tools, torches — player delivers |
+| Cash Pile | Artifact Discovery | Randomized rarity loot rolls replace flat cash |
+| Elevator | Tunnel/Passage | Transitions between expedition sites |
+| Toilet | Rest/Supply Station | Workers need rest/resupply, facility depletes and needs restocking |
+| Cleaner NPC | Excavation Crew | Automated workers clearing debris |
+| Loader NPC | Artifact Transporter | Automated workers moving relics to base camp |
+| Room Cleaning Time | Supply Need Duration | How often workers need new supplies |
+| Stay Duration | Excavation Time | How long a worker digs before finding something |
+| Stay Fee | Artifact Value | Cash earned per excavation (now randomized by rarity) |
+| Area/Floor | Dig Zone | Sections of the site unlocked progressively |
+
+## New Systems to Build
+
+### 1. Multiple Supply Types (extends existing Inventory system)
+- Add `InventoryType` entries: `WaterCanteen`, `Pickaxe`, `Torch`
+- Chambers specify `RequiredSupplyType` — player must deliver the correct type
+- Extends `UtilityModule` delivery routing with type-checking
+- Key files: `Level/Inventory/`, `Modules/UtilityModule/`, `Level/Entity/Item/ItemToiletController.cs`
+
+### 2. Artifact Loot System (new ArtifactModule)
+- Hooks into room state transition: `RoomOccupiedState` → `RoomUsedState`
+- Instead of flat `StayFee`, rolls on a rarity table (70% common, 20% rare, 8% epic, 2% legendary)
+- Multiplier per tier applied to base value
+- New `ArtifactConfig` ScriptableObject per site with weighted tiers
+- Creates UI popup showing artifact name, rarity, value
+- Key files: new `Modules/ArtifactModule/`, hooks into `Level/Entity/Room/States/RoomOccupiedState.cs`
+
+### 3. Discovery Reveal Sequence (new feature)
+- Triggers on first-time chamber unlock (`RoomReadyToPurchaseState` → `RoomAvailableState`)
+- DOTween sequence: camera zoom, particle burst, UI popup
+- First excavation in new chamber could guarantee higher rarity
+- Uses existing DOTween dependency
+- Key files: new `Modules/DiscoveryModule/` or extend `RoomController`
+
+### 4. Branching System (extends existing room/area unlock)
+- Add `BranchId` (int) and `BranchDependency` (int, -1 for none) to room configs
+- Group chambers into branches
+- When all chambers in a branch are completed, dependent branch transitions from `RoomHiddenState` to `RoomReadyToPurchaseState`
+- 1-2 branching points per site maximum
+- Key files: extend `Config/RoomConfig.cs`, `Modules/EntityModule.cs`
+
+### 5. Second Playable Character
+- `PlayerConfig` system already supports multiple characters via `GameConfig.PlayersMap`
+- Add second entry with different mesh, icon, sex
+- Character selection exists via `PlayerSelectionState`
+- Male: Indiana Jones archetype (fedora, leather jacket, brown/khaki)
+- Female: Original explorer (auburn hair, olive green shirt, aviator goggles, no Lara Croft copy)
+
+## Development Plan (Mechanics First, Art Later)
+
+### Phase 1: Core Re-theme (config only)
+- Update `GameConfig` ScriptableObject timing values (excavation times, supply durations)
+- Adjust `ReceptionModule` timing for base camp feel (faster registration)
+- Test the existing MPH loop as an archaeology game with placeholder hotel assets
+- No code changes — config and balance only
+
+### Phase 2: Multiple Supply Types
+- Extend `InventoryType` enum (WaterCanteen, Pickaxe, Torch)
+- Modify `UtilityController`/`UtilityView` for multiple supply stations
+- Add `RequiredSupplyType` to item controllers
+- Add type-checking in `UtilityModule` delivery routing
+- Make player pickup type-aware
+- THIS IS THE HARDEST PHASE — touches inventory, utility, items, player states
+
+### Phase 3: Artifact Loot System
+- Create `ArtifactModule` with rarity tables
+- Create `ArtifactConfig` ScriptableObject
+- Hook into `RoomOccupiedState` → `RoomUsedState` transition
+- Replace flat `StayFee` with randomized loot roll
+- Create UI popup for artifact reveal
+
+### Phase 4: Discovery Reveal
+- DOTween sequence on first chamber unlock
+- Particle effects, camera interaction, UI popup
+- Guarantee higher rarity on first excavation per chamber
+
+### Phase 5: Branching System
+- Add BranchId/BranchDependency to RoomConfig
+- Branch completion checking in EntityModule
+- Design first branching point in Pyramid site
+
+### Phase 6: Second Character
+- Add second PlayerConfig entry
+- Use duplicate model with different material for now
+
+### Phase 7: Site 2 — Jungle Temple
+- New Unity scene with different chamber layout
+- New RoomConfig values (harder, higher rewards)
+- ElevatorController transitions from Site 1 → Site 2
 
 ## Architecture
 
@@ -25,17 +128,52 @@ Managed by `GameStateManager` with `State` base class.
 - **Module System** — feature modules (CashModule, EntityModule, ReceptionModule, ToiletModule, etc.)
 - **MVC-style UI** — `BehaviourWithModel<T>` / `Mediator` base classes
 
+### Module Initialization Order (in GamePlayState)
+1. `ReceptionModule` — Base Camp / worker registration
+2. `EntityModule` — Areas, chambers, tunnel/passage, excavation crew
+3. `ToiletModule` — Rest/supply station management
+4. `UtilityModule` — Supply distribution system
+5. `CashModule` — Currency (artifact value) collection
+6. `UISpritesModule` — Sprite management
+7. `UINotificationModule` — On-screen notifications
+
 ### Key Managers (installed in Context)
 - `GameStateManager` — state machine
+- `GameManager` — central hub (items, rooms, areas, player, events)
+- `ItemRegistry` — item add/remove/find, ITEM_ADDED event
+- `GameEventBus` — all game-wide events
 - `HudManager` — UI management
 - `ResourcesManager` — asset loading
-- `AdsManager` — ad provider abstraction (GoogleAdMob / Fake)
+- `AdsManager` — ad provider abstraction
 - `IAPManager` — Unity IAP integration
-- `LoginManager` — daily login tracking
+
+### Room (Chamber) State Machine
+```
+RoomInitializeState
+  ├→ RoomHiddenState (not enough progress OR branch locked)
+  ├→ RoomReadyToPurchaseState (enough progress, awaiting purchase)
+  ├→ RoomUsedState (purchased, needs supplies)
+  └→ RoomAvailableState (purchased, supplied, ready for worker)
+
+RoomAvailableState → RoomOccupiedState (worker assigned, excavating)
+RoomOccupiedState → RoomUsedState (excavation done, artifact found, needs resupply)
+RoomUsedState → RoomAvailableState (supplies delivered)
+```
+
+### Player Interaction System
+`PlayerInteractionFactory` maps `ItemType` → `PlayerState`:
+- `ItemType.Clean` → `PlayerCleaningState` (delivering supplies)
+- `ItemType.ReceptionDesk` → `PlayerReceptionState` (registering workers)
+- `ItemType.BuyUpdate` → `PlayerOnItemState` (purchasing/upgrading chambers)
+- `ItemType.ShowHud` → `PlayerElevatorState` (tunnel/passage UI)
+
+To add new interactions: register in `GamePlayState.Initialize()` via `_interactionFactory.Register()`
 
 ### Persistence
 - **PlayerPrefs** with JSON-serialized `GameModel`
-- Keys: `"model"`, `HotelLvl{n}`, `HotelProgress{n}`, `watch_ads_times`, `login_days`, `login_date`
+- Entity keys: `"Hotel" + hotelIndex + entityType + number` (e.g., `"Hotel1Room3"`)
+- Per-entity: `"IsUsed"`, `"IsPurchased"`, `"Lvl"`, `"Cash"` + entity ID
+- Large numbers stored as strings
 
 ## Project Structure
 
@@ -61,8 +199,8 @@ Assets/GorodiskiGames/PerfectHotel/
 │   └── Utils/         # Helpers
 ├── Scenes/
 │   ├── Gameplay.unity # Main scene
-│   ├── Hotel1.unity   # Hotel/dorm level 1
-│   └── Hotel2.unity   # Hotel/dorm level 2
+│   ├── Hotel1.unity   # Site 1: Egyptian Pyramid
+│   └── Hotel2.unity   # Site 2: Jungle Temple
 ├── Resources/         # Dynamic-loaded assets (prefabs, sprites, configs)
 └── ResourcesStatic/   # Static assets (animations, materials, models, shaders, textures, fonts)
 ```
@@ -72,82 +210,56 @@ Assets/GorodiskiGames/PerfectHotel/
 All paths relative to `Assets/GorodiskiGames/PerfectHotel/Scripts/`.
 
 ### Managers & Config
-- `GameManager` → `Managers/GameManager.cs` (thin wrapper, delegates to ItemRegistry & GameEventBus)
-- `ItemRegistry` → `Managers/ItemRegistry.cs` (item add/remove/find, ITEM_ADDED event)
-- `GameEventBus` → `Managers/GameEventBus.cs` (all game-wide events and Fire methods)
+- `GameManager` → `Managers/GameManager.cs`
+- `ItemRegistry` → `Managers/ItemRegistry.cs`
+- `GameEventBus` → `Managers/GameEventBus.cs`
 - `GameConfig` → `Config/GameConfig.cs`
 - `GameModel` → `Domain/GameModel.cs`
-- `HudManager` → `Managers/HudManager.cs`
-- `ResourcesManager` → `Managers/ResourcesManager.cs`
-- `AdsManager` → `Managers/AdsManager.cs`
 
-### Core Framework
-- `BehaviourWithModel<T>` → `Core/UI/BehaviourWithModel.cs`
-- `Observable`, `IObserver` → `Core/Observer/Observable.cs`, `Core/Observer/IObserver.cs`
-- `Timer` → `Core/Timer.cs`
-- `Context`, `Injector` → `Core/DI/`
-- `State` (base) → `Core/StateMachine/`
-
-### Player States
-- `PlayerIdleState`, `PlayerWalkState`, `PlayerFindEntityState` → `Level/Player/PlayerStates/`
-- `PlayerItemState`, `PlayerCleaningState`, `PlayerReceptionState`, `PlayerOnItemState`, `PlayerElevatorState`, `PlayerPauseState` → `Level/Player/PlayerStates/`
+### Player
 - `PlayerController` → `Level/Player/PlayerController.cs`
-- `PlayerInteractionFactory` → `Level/Player/PlayerInteractionFactory.cs` (maps ItemType to PlayerState)
+- `PlayerInteractionFactory` → `Level/Player/PlayerInteractionFactory.cs`
+- Player states → `Level/Player/PlayerStates/`
 
-### Items
-- `ItemController`, `ItemRoomController`, `ItemToiletController`, `ItemReceptionController`, `ItemModel` → `Level/Entity/Item/ItemController.cs`
-- `ItemView`, `ItemType` enum → `Level/Entity/Item/ItemView.cs`
-- `ItemFillBarView` → `Level/Entity/Item/ItemFillBarView.cs`
-- `ItemReusableView` → `Level/Entity/Item/ItemReusableView.cs`
-- `IInventoryReceiver` → `Level/Entity/Item/IInventoryReceiver.cs` (interface for items that accept deliveries)
-
-### Room States
-- `RoomInitializeState` → `Level/Entity/Room/States/RoomInitializeState.cs`
-- `RoomAvailableState` → `Level/Entity/Room/States/RoomAvailableState.cs`
-- `RoomOccupiedState` → `Level/Entity/Room/States/RoomOccupiedState.cs`
-- `RoomUsedState` → `Level/Entity/Room/States/RoomUsedState.cs`
-- `RoomReadyToPurchaseState`, `RoomHiddenState` → `Level/Entity/Room/States/`
-- `RoomController` → `Level/Entity/Room/RoomController.cs`
-
-### Game States
-- `GameInitializeState` → `States/GameInitializeState.cs`
-- `GameLoadLevelState` → `States/GameLoadLevelState.cs`
-- `GamePlayState` → `States/GamePlayState.cs`
+### Entities (Chambers, Base Camp, Tunnel)
+- Room/Chamber → `Level/Entity/Room/`
+- Room states → `Level/Entity/Room/States/`
+- Elevator/Tunnel → `Level/Entity/Elevator/`
+- Reception/Base Camp → `Level/Entity/Reception/`
+- Cleaner/Excavation Crew → `Level/Entity/Cleaner/`
+- Loader/Transporter → `Level/Entity/Loader/`
+- Toilet/Supply Station → `Level/Entity/Toilet/`
+- Items → `Level/Entity/Item/`
 
 ### Modules
 - `CashModule`, `EntityModule`, `ReceptionModule`, `ToiletModule`, `UtilityModule` → `Modules/`
 
-### UI
-- `GameView` (joystick, camera ref) → `UI/GameView.cs`
-- `FillBarView` → `UI/Hud/FillBarView.cs`
-- `CameraController` → `Camera/CameraController.cs`
-
-## Configuration
-- `GameConfig` (ScriptableObject) — central game balance: cash defaults, entity radii, walk speeds, inventory limits, shop products, hotel configs
-- Entity-specific configs loaded from `Resources/{Entity}Configs/`
-
-## Third-Party Dependencies
-- **DOTween** — tweening/animation (`Assets/Plugins/Demigiant/DOTween/`)
-- **Google AdMob** — banner, interstitial, rewarded ads (`Assets/GoogleMobileAds/`)
-- **Unity IAP** — in-app purchases (`com.unity.purchasing`)
-- **TextMesh Pro** — text rendering
-- **EDM4U** — native dependency management
+### Core Framework
+- DI Container → `Core/DI/` (`Context.cs`, `Injector.cs`)
+- State Machine → `Core/StateMachine/`
+- Observer → `Core/Observer/`
+- Timer → `Core/Timer.cs`
 
 ## Coding Conventions
 - Namespace: `GorodiskiGames.PerfectHotel.*`
 - Custom DI: use `[Inject]` attribute, register via `Context.Install<T>()`
 - Config values go in ScriptableObjects, not hardcoded
 - UI follows `BehaviourWithModel<T>` pattern with `Mediator` base
+- Fields: `_lowerCamelCase` for private, `PascalCase` for public
+- Events: `ON_ACTION_VERB` naming (e.g., `ON_PURCHASED`, `ON_UPGRADED`)
+- New entities: create Config → View → Model → Controller stack
+- New modules: create `Module<T>` subclass, add to initialization order in `GamePlayState`
 
-## Build
-- Build scenes defined in `ProjectSettings/EditorBuildSettings.asset`:
-  1. Gameplay.unity
-  2. Hotel1.unity
-  3. Hotel2.unity
-- Portrait-only orientation on mobile
-- 60 FPS target, VSync disabled
+## Third-Party Dependencies
+- **DOTween** — tweening/animation
+- **Google AdMob** — ads
+- **Unity IAP** — in-app purchases
+- **TextMesh Pro** — text rendering
+- **EDM4U** — native dependency management
+
+## Game Design Reference
+See `Docs/GAME_DESIGN.md` for the full game design document including: expedition sites, artifact rarity system, branching system, character designs, art direction, and monetization strategy.
 
 ## Git
 - Remote: https://github.com/wizdorm/wizdorm.git
 - Branch: master
-- `.gitignore` excludes Library/, Temp/, Obj/, Build/, Logs/, UserSettings/, .csproj, .sln files
