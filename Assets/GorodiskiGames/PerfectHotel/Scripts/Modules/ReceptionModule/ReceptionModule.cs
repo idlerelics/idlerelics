@@ -171,11 +171,9 @@ namespace Game.Level.Reception
                 var existingRoom = _itemsMap[item];
                 var availableRoom = _gameManager.FindAvailableRoom();
 
-                // If this desk has no room assigned but one is available, start processing
-                if (existingRoom == null && availableRoom != null)
+                // If this desk has no room assigned but one has a free slot, claim it
+                if (existingRoom == null && availableRoom != null && availableRoom.TryReserveSlot())
                 {
-                    availableRoom.IsAvailable = false;  // Reserve the room
-
                     _itemsMap[item] = availableRoom;
 
                     // Set the processing duration on the item's model (countdown timer)
@@ -192,22 +190,36 @@ namespace Game.Level.Reception
                 }
             }
 
-            // For receptionist-staffed desks, count down automatically each frame
+            // For receptionist-staffed desks, count down automatically each frame.
+            // IMPORTANT: only one desk processes at a time, and only while a customer
+            // is physically at the front of the line. With multi-worker chambers, all
+            // 3 desks can reserve slots simultaneously — without this gate they all
+            // tick to 0 in lockstep and fire FireItemFinished in the same frame, which
+            // pulls customers out of line before they've even arrived (visually they
+            // "skip" reception). Serial processing keeps the visuals coherent.
+            if (!_reception.Line.IsFirstCustomerReady()) return;
+
             _tempItems.Clear();
             _tempItems.AddRange(_receptionistMap.Keys);
             foreach (var item in _tempItems)
             {
                 var existingRoom = _itemsMap[item];
-                if (existingRoom != null)
-                {
-                    // Decrement timer by frame time (Time.deltaTime = seconds since last frame)
-                    item.Model.Duration -= Time.deltaTime;
-                    item.Model.SetChanged();  // Update UI each frame
+                if (existingRoom == null) continue;
 
-                    // When timer reaches zero, the guest is processed
-                    if (item.Model.Duration <= 0f)
-                        item.FireItemFinished();
+                // Decrement timer by frame time (Time.deltaTime = seconds since last frame)
+                item.Model.Duration -= Time.deltaTime;
+                item.Model.SetChanged();  // Update UI each frame
+
+                // When timer reaches zero, the guest is processed — fire and stop so
+                // only one customer is pulled per frame (line needs to shift first).
+                if (item.Model.Duration <= 0f)
+                {
+                    item.FireItemFinished();
+                    break;
                 }
+
+                // Only the lead desk counts down per frame so processing stays serial.
+                break;
             }
         }
 
@@ -249,7 +261,12 @@ namespace Game.Level.Reception
         {
             // Get the first customer from the reception line queue
             var unit = _reception.Line.GetFirstCustomer();
-            if (unit == null) return;
+            if (unit == null)
+            {
+                // No customer to send — release the slot we reserved for this desk so it doesn't leak
+                room.ReleaseReservation();
+                return;
+            }
 
             // Set the customer's area to match the room's area (for area-based systems)
             unit.Area = room.Model.Area;

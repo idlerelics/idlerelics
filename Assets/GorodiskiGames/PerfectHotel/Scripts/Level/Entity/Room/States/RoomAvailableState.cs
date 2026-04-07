@@ -19,7 +19,8 @@ namespace Game.Level.Room
             // Save state: 0 = not used (clean)
             _gameManager.Model.SavePlaceIsUsed(_room.Model.ID, 0);
 
-            _room.IsAvailable = true; // Allow guests to be assigned here
+            _room.ResetSlots(); // Wipe any leaked reservations/workers from a previous dig cycle
+            _room.AcceptingWorkers = true; // Allow workers to be assigned here (slot reservation gates the rest)
 
             _room.View.SetDarkLight(false); // Normal/bright lighting
 

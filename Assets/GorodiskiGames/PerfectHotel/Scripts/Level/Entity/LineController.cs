@@ -39,6 +39,22 @@ namespace Game.Level.Line
         }
 
         /// <summary>
+        /// True if the front-of-line slot has a customer that has actually walked up
+        /// (within ~0.1 units of the place transform). Used by ReceptionModule so the
+        /// receptionist's progress timer doesn't tick down until a guest is physically
+        /// at the desk — otherwise multi-worker rooms drain the line faster than
+        /// customers can arrive, causing them to be teleported mid-walk and visually
+        /// "skip" reception.
+        /// </summary>
+        public bool IsFirstCustomerReady()
+        {
+            var firstPlace = _placeUnitMap.Keys.First();
+            var customer = _placeUnitMap[firstPlace];
+            if (customer == null) return false;
+            return (customer.View.transform.position - firstPlace.position).sqrMagnitude <= 0.04f;
+        }
+
+        /// <summary>
         /// FIX #3: Cache dictionary keys into a list for O(n) iteration.
         /// Previously used .ToList() in a foreach then .ElementAt(index) inside the loop.
         /// ElementAt() on a Dictionary is O(n) per call, making the whole method O(n³).

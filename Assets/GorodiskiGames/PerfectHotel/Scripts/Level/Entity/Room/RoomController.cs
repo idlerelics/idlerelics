@@ -10,6 +10,7 @@ using Game.Level.Area;
 using Game.Level.Place;
 using Game.Level.Entity;
 using Game.Level.Item;
+using Game.Level.Unit;
 
 namespace Game.Level.Entity
 {
@@ -130,10 +131,13 @@ namespace Game.Level.Room
         public int VisualIndex;       // Which visual variant to display (different furniture, etc.)
         public float CleaningTime;    // How long it takes to clean this room (in seconds)
         public int StayFee;           // How much cash a guest pays to stay
-        public float StayDuration;    // How long a guest stays (in seconds)
+        public float StayDuration;    // How long a guest stays (in seconds, base — divided by active workers at runtime)
         public int EntranceFee;       // Fee charged when a guest enters
+        public int Capacity;          // Max simultaneous workers (Lvl 0 = 1, Lvl 1 = 2, Lvl 2+ = 3, hard cap 3)
 
         public RoomLvlConfig[] Lvls;  // Array of configs, one per upgrade level
+
+        public const int MAX_CAPACITY = 3;
 
         /// <summary>
         /// Constructor: builds a RoomModel from config data and immediately calculates
@@ -154,7 +158,7 @@ namespace Game.Level.Room
             UpdateModel();
         }
 
-        /// <summary>Sets room values (fees, cleaning time, excavation duration) based on the current level.</summary>
+        /// <summary>Sets room values (fees, cleaning time, excavation duration, capacity) based on the current level.</summary>
         public override void GetUpdatedValues()
         {
             TargetUpdateProgress = Lvls[LvlNext].TargetUpdateProgress;
@@ -166,6 +170,9 @@ namespace Game.Level.Room
             // Per-level StayDuration: use level config if set, otherwise keep the fallback from RoomConfig
             if (Lvls[Lvl].StayDuration > 0f)
                 StayDuration = Lvls[Lvl].StayDuration;
+
+            // Worker capacity scales with level: Lvl 0 → 1 worker, Lvl 1 → 2, Lvl 2+ → 3 (hard cap)
+            Capacity = Mathf.Clamp(Lvl + 1, 1, MAX_CAPACITY);
         }
 
         public override int GetLvlLength()
@@ -200,10 +207,85 @@ namespace Game.Level.Room
         public ItemController ItemCashPile => _itemCashPile;
         public ItemController ItemBuyUpdate => _itemBuyUpdate;
 
-        public Action ON_EXCAVATION_COMPLETE;  // Fired when excavation timer ends, unit should leave
+        public Action ON_EXCAVATION_COMPLETE;  // Fired when excavation timer ends, unit(s) should leave
+        public Action ON_WORKER_JOINED;        // Fired when a worker arrives and occupies a slot
+        public Action ON_WORKER_LEFT;          // Fired when a worker leaves a slot
+
+        // Multi-worker chamber slot tracking.
+        // ReservedSlotCount = workers en route (reception assigned them but they haven't arrived yet).
+        // ActiveWorkers      = workers physically inside the chamber, currently digging.
+        // AcceptingWorkers   = the room's state allows new workers (Available or Occupied; not Used/Hidden/etc.)
+        private readonly List<UnitController> _activeWorkers = new List<UnitController>();
+        private int _reservedSlotCount;
+        public int ReservedSlotCount => _reservedSlotCount;
+        public int ActiveWorkerCount => _activeWorkers.Count;
+        public IReadOnlyList<UnitController> ActiveWorkers => _activeWorkers;
+        public bool AcceptingWorkers { get; internal set; }
 
         public AreaController Area { get; internal set; }
-        public bool IsAvailable { get; internal set; }
+
+        /// <summary>
+        /// True if this chamber currently has at least one free worker slot AND its state allows joining.
+        /// Computed from capacity, reservations, active workers, and AcceptingWorkers.
+        /// </summary>
+        public bool IsAvailable => AcceptingWorkers
+                                   && (_reservedSlotCount + _activeWorkers.Count) < _model.Capacity;
+
+        /// <summary>
+        /// Atomically claims one slot for a worker that's about to walk over.
+        /// Returns true if a slot was reserved, false if the chamber is full or not accepting.
+        /// </summary>
+        public bool TryReserveSlot()
+        {
+            if (!IsAvailable) return false;
+            _reservedSlotCount++;
+            return true;
+        }
+
+        /// <summary>
+        /// Releases a previously-reserved slot. Call when a walking worker fails to arrive
+        /// (e.g., room transitioned to Used while in transit) so the slot frees up.
+        /// </summary>
+        public void ReleaseReservation()
+        {
+            if (_reservedSlotCount > 0) _reservedSlotCount--;
+        }
+
+        /// <summary>
+        /// Converts a reservation into an active worker. Called when the worker arrives at the chamber.
+        /// Returns the slot index assigned (used by UnitInRoomState to position the worker visually).
+        /// Fires ON_WORKER_JOINED so RoomOccupiedState can recompute trickle scaling.
+        /// </summary>
+        public int AddWorker(UnitController unit)
+        {
+            if (_reservedSlotCount > 0) _reservedSlotCount--;
+            if (!_activeWorkers.Contains(unit)) _activeWorkers.Add(unit);
+            ON_WORKER_JOINED?.Invoke();
+            return _activeWorkers.IndexOf(unit);
+        }
+
+        /// <summary>
+        /// Removes a worker from the active list (called when the worker exits the chamber).
+        /// Fires ON_WORKER_LEFT so RoomOccupiedState can recompute or finalize.
+        /// </summary>
+        public void RemoveWorker(UnitController unit)
+        {
+            if (_activeWorkers.Remove(unit))
+                ON_WORKER_LEFT?.Invoke();
+        }
+
+        /// <summary>Returns the slot index this worker holds, or -1 if not currently active.</summary>
+        public int GetSlotIndex(UnitController unit) => _activeWorkers.IndexOf(unit);
+
+        /// <summary>
+        /// Defensive reset of all slot tracking. Called when the room re-enters RoomAvailableState
+        /// to guarantee no stale reservations or active workers leaked from the previous dig cycle.
+        /// </summary>
+        public void ResetSlots()
+        {
+            _reservedSlotCount = 0;
+            _activeWorkers.Clear();
+        }
 
         public override Transform Transform => _view.transform;
 
