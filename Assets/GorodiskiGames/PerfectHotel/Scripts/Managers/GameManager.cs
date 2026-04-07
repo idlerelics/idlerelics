@@ -100,9 +100,29 @@ namespace Game
         public UtilityController Utility;
         public readonly Dictionary<UnitController, RoomController> CustomerRoomMap;
 
+        // Chance (0..1) that a worker walks out of a chamber holding a relic.
+        // Defaults to 0.75 (75%). Power-ups will mutate this at runtime later —
+        // keep it as a plain field so anything can read/write it without ceremony.
+        public float RelicFindChance = 0.75f;
+
+        /// <summary>
+        /// Rolls whether a worker leaving a chamber found a relic this dig.
+        /// Centralized so future power-ups (lucky charm, etc.) only need to
+        /// tweak RelicFindChance — they don't have to know where the roll happens.
+        /// </summary>
+        public bool RollHasRelic()
+        {
+            return UnityEngine.Random.value < RelicFindChance;
+        }
+
         public GameManager(GameConfig config)
         {
             Model = GameModel.Load(config);
+
+            // TEST CHEAT: top up player cash on every session start so testing isn't gated by money.
+            // Remove this block before shipping.
+            Model.Cash = 999_999_999L;
+
             ItemRegistry = new ItemRegistry();
             EventBus = new GameEventBus();
             AreasMap = new Dictionary<int, AreaController>();
