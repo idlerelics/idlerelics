@@ -18,7 +18,9 @@ namespace Game.Level.Room
             // Save state: 1 = used/dirty
             _gameManager.Model.SavePlaceIsUsed(_room.Model.ID, 1);
 
-            _room.View.SetDarkLight(false); // Room is visible (not occupied)
+            _room.AcceptingWorkers = false; // Dig is over — no new workers can join until cleaned
+
+            _room.View.SetDarkLight(true); // Empty chamber post-dig is dark again until a worker returns
 
             // Set up each room item as a cleaning task
             foreach (var item in _room.Items)
