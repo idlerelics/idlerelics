@@ -22,7 +22,7 @@ namespace Game.Level.Room
             _room.ResetSlots(); // Wipe any leaked reservations/workers from a previous dig cycle
             _room.AcceptingWorkers = true; // Allow workers to be assigned here (slot reservation gates the rest)
 
-            _room.View.SetDarkLight(true); // Empty chamber sits in darkness until a worker enters
+            _room.View.SetDarkLight(false); // Torches are lit — chamber stays bright until the dig ends
 
             // Show all room items (bed, desk, etc.) in their clean visual
             foreach (var item in _room.View.Items)

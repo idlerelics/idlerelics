@@ -42,10 +42,7 @@ namespace Game.Level.Room
             _baseTrickleAmount = Mathf.Max(1, _totalFee / _numberOfTrickles);
             _trickleTimer = TRICKLE_INTERVAL_SECONDS;
 
-            // Light is driven by ActiveWorkerCount: dark while empty, lit as soon as the first
-            // worker arrives, dark again when the last one leaves. The room can enter this state
-            // before any worker has physically arrived, so honor the current count here.
-            _room.View.SetDarkLight(_room.ActiveWorkerCount <= 0);
+            _room.View.SetDarkLight(false); // Torches stay lit for the whole dig
 
             _timer.TICK += OnTick;
             _room.ON_WORKER_JOINED += OnWorkersChanged;
@@ -105,9 +102,7 @@ namespace Game.Level.Room
         /// </summary>
         private void OnWorkersChanged()
         {
-            // Toggle the chamber light: lit while at least one worker is inside, dark otherwise.
-            // Scaling is still handled per-tick in OnTick.
-            _room.View.SetDarkLight(_room.ActiveWorkerCount <= 0);
+            // Intentionally empty — scaling is per-tick, lighting is owned by state transitions.
         }
 
         /// <summary>
