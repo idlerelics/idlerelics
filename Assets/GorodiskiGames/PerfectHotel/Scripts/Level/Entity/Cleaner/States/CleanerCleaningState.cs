@@ -20,6 +20,7 @@ namespace Game.Level.Cleaner
             _cleaner.View.UnitView.Clean();
 
             _timer.TICK += OnTick;
+            _item.CLAIM_REVOKED += OnClaimRevoked;
         }
 
         public override void Dispose()
@@ -27,6 +28,16 @@ namespace Game.Level.Cleaner
             base.Dispose();
 
             _timer.TICK -= OnTick;
+            _item.CLAIM_REVOKED -= OnClaimRevoked;
+        }
+
+        /// <summary>
+        /// Player stole this item mid-clean. Stop the animation loop and go idle so the
+        /// cleaner can pick a different target instead of standing here forever.
+        /// </summary>
+        private void OnClaimRevoked(ItemController _)
+        {
+            _cleaner.SwitchToState(new CleanerIdleState());
         }
 
         private void OnTick()
@@ -36,6 +47,11 @@ namespace Game.Level.Cleaner
 
             if (_item.Model.Duration > 0f) return;
 
+            // Remove from the registry so the cleaner doesn't immediately re-find this same
+            // already-cleaned torch on her next scan. The room re-adds items on the next
+            // dig cycle via RoomUsedState.Initialize.
+            _gameManager.RemoveItem(_item);
+            _item.Release(_cleaner); // Clear the reservation so the next dig cycle starts clean
             _item.FireItemFinished();
 
             _cleaner.SwitchToState(new CleanerWalkHomeState(_cleaner.InitialPosition));
