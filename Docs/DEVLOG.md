@@ -6,6 +6,107 @@ A running log of meaningful changes, decisions, and gotchas for Lost Chambers: I
 
 ---
 
+## pre-2026-04-08 — Chamber lighting, torch-lighting maid, and collector office design (backfilled)
+
+**Summary.** Chain of decisions from an earlier Cowork session that established the chamber lighting loop, re-fictioned the maid as a torch-lighter, added player-vs-NPC item stealing, and locked in the collector office design. Backfilled into this log after the fact.
+
+### Chamber lighting is driven by room state, not worker count
+
+Chambers start **dark** and only light up while the maid's torches are burning. The lighting trigger lives in the room state machine, not in the worker-count events:
+
+- `RoomView.Awake` — chambers spawn dark.
+- `RoomAvailableState` — lit (torches burning, room ready for workers).
+- `RoomOccupiedState` — lit (workers digging under torchlight).
+- `RoomUsedState` — dark (torches burned out, maid coming to relight).
+
+An earlier attempt tied lighting to `OnWorkersChanged` (lit while any worker is physically inside). It was correct under the fiction "lit = someone is in the room," but got reverted once the maid-as-torch-lighter frame took over. State transitions are simpler and match the new fiction exactly.
+
+### The maid is now a torch-lighter, not a cleaner (pure re-skin)
+
+The existing cleaner NPC, pathfinding, queue logic, and 3-point item loop are all reused verbatim. Only the *fiction* changed: the maid lights 3 torches instead of cleaning 3 dirty points. **No new NPC, no new code path.**
+
+One real behavior change: newly purchased chambers now transition into `RoomUsedState` instead of `RoomAvailableState` after `RoomReadyToPurchaseState`. This means the very first thing that happens to a fresh chamber is the maid arriving to light it — a small discovery moment for the player, and it keeps the loop consistent (every lit chamber was lit *by the maid*).
+
+Loop: Purchased → dark → maid lights 3 torches → Available (lit) → workers arrive and dig → `StayDuration` expires → Used (dark, torches burned out) → maid re-queued.
+
+Eventual rename candidate (deferred): `RoomAvailableState` → `RoomLitState`, `RoomUsedState` → `RoomUnlitState`, etc. Not worth the churn until the mechanic is fully locked in.
+
+### Player can steal torch-lighting tasks from the maid (soft-claim system)
+
+**Why:** the player should always feel more powerful than the NPC. Previously, the cleaner would call `_gameManager.RemoveItem()` the moment she picked a target, silently removing it from the player's `FindClosestUsedItem` lookup. Result: one of the 3 torches was effectively invisible to the player until the maid finished it.
+
+**How it works now:**
+- `ItemController.Claim(claimer)` / `ReleaseClaim()` — items carry a soft claim tag.
+- `ItemRegistry.FindUsedItem` skips claimed items for *cleaners* (so cleaners don't fight over the same torch).
+- Player's `FindClosestUsedItem` is **intentionally unfiltered** — player sees everything.
+- When the player walks onto a claimed torch, `PlayerItemState.Initialize` calls `_item.Claim(this)`. The claimer change fires `CLAIM_REVOKED`. Both `CleanerWalkToItemState` and `CleanerCleaningState` subscribe and abort to `CleanerIdleState` on revoke.
+- If the player walks away mid-light (joystick interrupt), they release the claim before re-adding the item to the registry, so the maid can pick it back up.
+- When the cleaner finishes a torch normally, she now releases the claim *and* removes the item from the registry — without this, the `ClaimedBy` reference persisted across dig cycles (ghost claims), and the item stayed in the registry causing the maid to re-target the just-finished torch at zero distance (the "shaking maid" bug).
+
+### Collector office design (agreed but mostly uncoded)
+
+The plan for turning toilets into a relics collector office:
+
+- Single inventory type: **parchment** (not parchment + ink). Keeps the change minimal and leaves a second inventory slot free for a future soda-machine-equivalent station where the helper has a separate job.
+- Re-uses the toilet cabin/seat system verbatim (`ItemToiletController` stays as-is conceptually). Worker walks to free seat, hands over relic, collector logs it for `StayDuration`, then available again until parchment runs out.
+- **Workers visit the collector only if they found a relic.** Empty-handed workers go home directly.
+- `HasRelic` is hardcoded at **75%** for now — deliberately a placeholder so a future Power-Up system can modulate the find rate.
+- **Relic finding does not replace cash generation.** Cash still trickles during `RoomOccupiedState`. The relic is a *separate post-dig outcome* that plays out when the worker leaves the chamber. This is why the collector visit can be theatrical/optional without breaking the economy.
+- Class renames (`RelicCollectorController`, `CollectorOfficeModule`, etc.) deliberately deferred until the mechanic is locked in.
+
+### Open items
+
+- Empty-handed worker visual (slumped walk / "—" particle / nothing) — not decided.
+- `RoomLit`/`RoomUnlit` rename pass — deferred.
+- Collector class/module rename pass — deferred.
+- Unified "dig outcome roll" that produces both the `HasRelic` boolean and (eventually) the rarity tier from a single random call — not built yet; current code is the 75% placeholder only.
+
+---
+
+## 2026-04-08 — Chamber upgrade economics: dual-lever design
+
+**Summary.** Locked in the upgrade-economics rule: chamber level controls both worker capacity *and* `StayFee` per dig. Verified against the existing `RoomOccupiedState` code, which already supports this model — it's a config decision, not a code change.
+
+### The rule
+
+Upgrading a chamber raises its **level**, and the level drives two things:
+
+1. **Worker capacity.** Level 0 = 1 worker slot, level 1 = 2, level 2 = 3. The chamber's physical size gates how many workers can dig in parallel.
+2. **`StayFee` per dig.** Each level tier in `RoomConfig.Lvls[]` can list a higher `StayFee`, so a higher-level chamber is intrinsically richer per completed dig.
+
+The two levers compound: a level-2 chamber earns `3 workers × higher StayFee × faster throughput` compared to a level-0 chamber. This is deliberate — it's the classic idle-game curve and it gives upgrading a meaningful punch at every step.
+
+### How it actually works in `RoomOccupiedState`
+
+Cash and dig duration are both scaled by `ActiveWorkerCount` in `OnTick`:
+
+```csharp
+scaledDt = dt * workers;
+_stayDuration -= scaledDt;                        // dig finishes worker× faster
+int trickle = _baseTrickleAmount * workers;       // cash arrives worker× faster
+```
+
+Important nuance: the **total payout for a single dig** is always `StayFee`, regardless of how many workers are inside. Workers don't each print independent money — they *speed up* the dig, which raises throughput (digs-per-minute), which is what translates into more cash per minute. The per-dig amount is set once in `Initialize()` from `_room.Model.StayFee`, which itself comes from `RoomController.StayFee = Lvls[Lvl].StayFee`.
+
+This means there are exactly two places to tune chamber economy:
+
+- **`RoomConfig.Lvls[Lvl].StayFee`** — the per-dig payout for each level tier. Bump this to make upgrades feel richer per dig.
+- **Worker capacity per level** — currently 1/2/3, could be tuned later if throughput feels off.
+
+Duration tuning lives on `StayDuration`, which is also per-level via the same `Lvls[]` array, so you can independently decide whether higher-level chambers dig *longer* (more cash per dig but slower loop) or *shorter* (faster loop, less per dig).
+
+### Why the dual-lever model instead of "workers are the only lever"
+
+A pure "workers = money, chamber is just a container" rule was considered (flat `StayFee` across all levels, upgrading only unlocks worker slots). Rejected because it collapses two useful tuning knobs into one and makes late-game chambers feel economically identical to early-game ones except for being bigger. The dual-lever version lets Site 2's chambers feel genuinely richer per dig *as well as* bigger, which matters for per-site progression and for the eventual Site 2 unlock.
+
+### Open items
+
+- Actual `StayFee` / `StayDuration` / worker-cap numbers per level — not tuned, just the shape is decided.
+- Whether the `StayFee` curve should be linear, exponential, or hand-tuned per level — deferred until there's enough chambers to playtest.
+- Worker-hiring and worker-pool mechanics — deliberately deferred, not part of this decision.
+
+---
+
 ## 2026-04-08 — Working Rules added to CLAUDE.md
 
 **Summary.** Promoted two working rules (update DEVLOG after any non-trivial work; open prefabs before trusting class-name grep) from auto-memory into `idlerelics/CLAUDE.md`, so they apply to every Claude session on this repo automatically instead of depending on Fabian remembering to ask.
