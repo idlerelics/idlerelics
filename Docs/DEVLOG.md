@@ -6,6 +6,51 @@ A running log of meaningful changes, decisions, and gotchas for Lost Chambers: I
 
 ---
 
+## 2026-04-08 — Working Rules added to CLAUDE.md
+
+**Summary.** Promoted two working rules (update DEVLOG after any non-trivial work; open prefabs before trusting class-name grep) from auto-memory into `idlerelics/CLAUDE.md`, so they apply to every Claude session on this repo automatically instead of depending on Fabian remembering to ask.
+
+### What changed
+
+- **`idlerelics/CLAUDE.md`** — added a new `## Working Rules (for Claude)` section immediately before `## Architecture`. Rule 1 makes devlog updates a required part of task completion. Rule 2 codifies the "open the .prefab, check `m_Script` GUID" investigation order to prevent repeats of the Hotel 2 vending-machine mis-read.
+
+### Why
+
+The previous setup relied on Claude's auto-memory (`.auto-memory/`), which is machine-scoped and not part of the repo. That meant the rules only fired when Claude happened to load memory, and any new Claude environment would start blind. Putting the rules in `CLAUDE.md` makes them travel with the repo in git — visible to Fabian, versioned, and loaded automatically by any Claude agent that reads the project's CLAUDE.md at startup.
+
+### Open items
+
+None — self-referential entry; the rule was applied to document its own addition.
+
+---
+
+## 2026-04-08 — Inspector-driven hotel start override
+
+**Summary.** Replaced the earlier hardcoded `_hotel = 2;` debug hack with a proper Inspector-driven override on `GameConfig`, so switching test hotels no longer requires editing code (and no longer risks an accidental commit of a hack).
+
+### What changed
+
+- **`Assets/GorodiskiGames/PerfectHotel/Scripts/Config/GameConfig.cs`** — added a new `[Header("Debug")]` section with a `StartHotelOverride` int field (default `0`). `[Min(0)]` prevents negative values; a `[Tooltip]` explains the behavior in the Inspector. Field is set on the `Resources/GameConfig.asset` ScriptableObject and therefore Inspector-editable.
+- **`Assets/GorodiskiGames/PerfectHotel/Scripts/States/GameLoadLevelState.cs`** — after the existing save-load-clamp-and-save-back block, the state now checks `_config.StartHotelOverride`. If greater than 0, it replaces `_hotel` with the override (re-clamping against build settings as a safety). Crucially, the override is applied **after** `model.Save()`, so the save file is untouched — toggling the override back to 0 returns to real progress with zero lingering side effects.
+
+### Why
+
+The earlier approach (edit a line in `GameLoadLevelState.cs`, press Play, revert before commit) worked but had two failure modes: (1) easy to forget to revert, risking a committed hack, and (2) required a recompile every time we wanted to flip hotels. The Inspector-driven override fixes both — you flip a number in the `GameConfig.asset` Inspector and press Play, no code change, no recompile, no risk of committing a test hack.
+
+### How to use
+
+1. Open `Assets/GorodiskiGames/PerfectHotel/Resources/GameConfig.asset` in the Inspector.
+2. Scroll to the **Debug** section at the bottom.
+3. Set `Start Hotel Override` to the desired hotel scene index (`1` = Hotel1, `2` = Hotel2, etc.).
+4. Press Play.
+5. To return to normal play, set it back to `0`.
+
+### Open items
+
+- The previous day's *"Hotel 2 debug override still in place"* open item is now **resolved**. `GameLoadLevelState.cs` is back to its original form; no hardcoded override remains.
+
+---
+
 ## 2026-04-08 — Relic placeholder prop and collector office architecture
 
 **Summary.** Investigated the Hotel 2 vending machine system, confirmed it is implemented as a reskinned toilet, and added a placeholder cube prop so workers visibly carry a "relic" from chamber to collector office.
