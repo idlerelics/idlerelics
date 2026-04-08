@@ -108,6 +108,10 @@ namespace Game.Level.Unit
                 return;
             }
 
+            // Visual cue: attach a placeholder cube so the player can see the
+            // worker is carrying a relic to the collector office.
+            _unit.View.AttachRelicPlaceholder();
+
             var toilet = _gameManager.FindToilet(_unit.Area);
             if (toilet != null)
             {

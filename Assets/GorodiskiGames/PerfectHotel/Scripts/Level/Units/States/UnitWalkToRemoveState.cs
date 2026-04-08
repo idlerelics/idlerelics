@@ -14,6 +14,11 @@ namespace Game.Level.Unit
             base.Initialize();
 
             _unit.Area = -1;
+
+            // Safety: if the worker was carrying a relic placeholder but is now
+            // being despawned (collector full, no office in area, etc.), clean
+            // up the prop so they don't walk off-screen with a floating cube.
+            _unit.View.DetachRelic();
         }
 
         public override void OnReachDistance()

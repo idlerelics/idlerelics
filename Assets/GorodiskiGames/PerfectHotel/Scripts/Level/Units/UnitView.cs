@@ -221,6 +221,58 @@ namespace Game.Level.Unit
 
         }
 
+        // -----------------------------------------------------------------
+        // RELIC PROP (placeholder)
+        // -----------------------------------------------------------------
+        // Temporary visual prop for workers carrying a found relic from the
+        // excavation chamber to the collector office. Currently just a small
+        // primitive cube instantiated at runtime and parented to the unit so
+        // it follows along automatically. Replace with a proper relic prefab
+        // (and a hand-bone anchor) once art is ready. See Docs/DEVLOG.md.
+        // -----------------------------------------------------------------
+
+        private GameObject _carriedRelic;
+
+        /// <summary>
+        /// Spawns a placeholder cube above the unit and parents it to the
+        /// unit's transform so it follows the worker as they walk. Safe to
+        /// call multiple times -- existing relic is replaced.
+        /// </summary>
+        public void AttachRelicPlaceholder()
+        {
+            if (_carriedRelic != null) DetachRelic();
+
+            _carriedRelic = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _carriedRelic.name = "CarriedRelic(Placeholder)";
+
+            // Strip the collider so physics don't interfere with navigation.
+            var col = _carriedRelic.GetComponent<Collider>();
+            if (col != null) Destroy(col);
+
+            var t = _carriedRelic.transform;
+            t.SetParent(transform, worldPositionStays: false);
+            t.localPosition = new Vector3(0f, 1.25f, 0.35f); // roughly at chest/hands height in front of the unit
+            t.localEulerAngles = Vector3.zero;
+            t.localScale = Vector3.one * 0.3f;
+
+            // Activate the carry upper-body animation layer so the pose matches.
+            SetLayerWeight(1);
+        }
+
+        /// <summary>
+        /// Destroys the placeholder relic and resets the carry animation layer.
+        /// Safe to call even if no relic is currently attached.
+        /// </summary>
+        public void DetachRelic()
+        {
+            if (_carriedRelic != null)
+            {
+                Destroy(_carriedRelic);
+                _carriedRelic = null;
+            }
+            SetLayerWeight(0);
+        }
+
         /// <summary>Shortcut property to get/set the unit's world position via its Transform.</summary>
         public Vector3 Position
         {

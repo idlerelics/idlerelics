@@ -39,6 +39,10 @@ namespace Game.Level.Unit
             // Get how long this unit will stay in the cabine (configured per toilet level)
             _toiletDuration = _cabine.StayDuration;
 
+            // Hand over the relic placeholder -- the worker has reached the
+            // collector and is depositing their find.
+            _unit.View.DetachRelic();
+
             // Close the door behind the unit for privacy
             _cabine.View.CloseDoor();
 
