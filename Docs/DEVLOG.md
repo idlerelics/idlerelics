@@ -63,6 +63,20 @@ The plan for turning toilets into a relics collector office:
 
 ---
 
+## 2026-04-08 — Rule 0 added: read DEVLOG at task start
+
+**Summary.** Added a "Rule 0" to CLAUDE.md's Working Rules mandating that every new task read `Docs/DEVLOG.md` (at minimum the most recent 3–4 entries) before answering the user's first substantive question.
+
+### Why
+
+First real test of the cross-session memory system revealed the gap: a new task started in the project loaded CLAUDE.md fine, but when asked "what did we do today?" the new Claude answered from inference instead of reading the devlog. CLAUDE.md *mentioned* the devlog existed but didn't *require* reading it, so the instruction was interpreted as "this file exists" rather than "open this file now." Rule 0 closes the gap by making the read explicit and positioning it *before* Rule 1 (the write rule) so it's the first thing a new session sees.
+
+### Open items
+
+- This is still a norm, not a hard guarantee. If a future task's first response feels uninformed, the reliable manual workaround is for Fabian to say "read Docs/DEVLOG.md first" as the opening message.
+
+---
+
 ## 2026-04-08 — Chamber upgrade economics: dual-lever design
 
 **Summary.** Locked in the upgrade-economics rule: chamber level controls both worker capacity *and* `StayFee` per dig. Verified against the existing `RoomOccupiedState` code, which already supports this model — it's a config decision, not a code change.
