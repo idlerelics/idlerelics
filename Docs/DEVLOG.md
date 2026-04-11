@@ -6,6 +6,62 @@ A running log of meaningful changes, decisions, and gotchas for Lost Chambers: I
 
 ---
 
+## 2026-04-11 — PlayerArchaeologist hidden skin body removed; rig saga signed off
+
+**Summary.** Final cleanup pass on the PlayerArchaeologist mesh: deleted the hidden inner skin body that was sitting underneath the pants/jacket and causing visible "skin color stretch" artifacts during walk. Mesh dropped from 3815 → 3763 verts (−52, −1.4%) and from 5762 → 5751 faces. One known cosmetic artifact remains (a small jacket-colored patch visible only from a back-of-character camera angle that the game doesn't normally use); accepted as ship-acceptable, see Open items.
+
+### What changed
+
+- **`Desktop/idle Relic/PlayerArchaeologist.blend`** — deleted 174 hidden SKIN-UV faces in the under-clothing zone, filled the resulting 5 holes at the wrist/cuff seams with new triangles, deleted a stray 88cm wire-edge artifact left by `fill_holes`, re-symmetrized weights.
+- **`Assets/.../PlayerArchaeologist.fbx`** — re-exported. Mesh sub-asset name and fileID still unchanged, so `5Archaeologist.asset` Body reference still resolves.
+- **`Assets/Editor/PlayerArchaeologistMeshDiagnostic.cs`** + meta + folder — **deleted**. The diagnostic probe is no longer needed.
+
+### Why
+
+The user reported a "stretch of skin color" appearing in the inner-thigh / between-the-legs area during the walk cycle. Initial wrist-area weight cleanup (round 3e) reduced it but didn't eliminate it. Read-only investigation in Blender via `bmesh` + UV inspection revealed the real cause:
+
+The atlas pixel-to-color mapping had to be read directly from `PlayerArchaeologistAtlas.png` to identify which UV is which color. Pixel 0 (UV `0.056`) is **SKIN** (RGB 133,66,36 — that orange-peach color); pixel 4 (UV `0.5`) is **JACKET** (very dark brown). Earlier I had assumed UV `0.5` was skin because I sampled "hand verts" at `|x|>0.5, z=0.78-0.86` and they all had UV `0.5` — but at that z they're actually the cuff/sleeve area, not the visible hand. The actual visible hand sits **lower**, at z≈0.40-0.55 (where the hand naturally hangs at the side in A-pose), and has UV `0.056`.
+
+After re-searching with the correct skin UV, found **174 SKIN-colored faces in the under-clothing zone** (`z<1.05` outside the visible hand region) — an underlying skin body the artist had modeled and then covered with pants/jacket geometry. These hidden skin verts had inherited some auto-weight bleed from the leg bones, so during walk they were getting pulled and producing the "skin stretch" through whatever rendering quirk made them visible.
+
+**Removing the hidden body fixed the root cause** instead of patching the symptom. The 40 misweighted hand-area verts I was about to weight-patch individually (round 3e+) **were** part of the hidden body — they got swept up in the cleanup automatically. Hand primary-vert counts dropped from 416 → 391 (−25 per side), which matches the predicted loss of inner-side wrist verts.
+
+### Stage 2 cleanup considered, deferred
+
+Survey found **804 inward-facing faces** total (~14% of the mesh) — the inner sides of clothing tubes that are never visible. A Stage 2 pass could remove most of those for a further ~13–18% vert reduction. **Not done in this round** — the rig is at "good enough to ship," more aggressive cleanup risks new artifacts, and we already spent significant iteration on this character. Save Stage 2 for a future optimization pass if the game ever needs it.
+
+### Workflow lessons (added to the running list)
+
+7. **Read atlas pixel colors directly before identifying body regions by UV.** Sampling "known body parts" by position can mislead — at a glance the wrist looks like the hand, but it's actually the cuff. The atlas is the ground truth; sample its pixels and look at the RGB values.
+8. **Hidden geometry is often the root cause of "weight bleed" symptoms.** When the auto-weights diagnostic shows mysteriously misweighted verts in the wrong place, check if those verts belong to a hidden inner shell that was never supposed to be skinned. Removing the hidden geometry can be a faster fix than re-weighting it.
+9. **Save a checkpoint .blend before AND after each destructive UV/topology edit.** I had a checkpoint before the cleanup but not between cleanup-with-jacket-fills and cleanup-with-skin-fills, which made the recolor revert harder than it needed to be.
+10. **`fill_holes` can create wire-edge artifacts** (an edge with no faces) when it tries to bridge two unrelated boundary verts. Always check for boundary edges after a fill operation, even if the count looks like "almost done."
+
+### Final mesh state
+
+```
+3763 verts, 5751 faces, 1 mesh island, 0 boundary edges
+22 bind bones (matching PlayerA exactly)
+Symmetric weights:
+  LeftHand=391  RightHand=391
+  LeftArm=24    RightArm=24
+  LeftForeArm=79 RightForeArm=79
+  LeftFoot=78   RightFoot=78
+  Hips=185      Head=1034
+0 unweighted verts
+SKIN faces: 750 (face/head/neck/visible hand only — 0 hidden)
+```
+
+### Open items
+
+- **Cosmetic artifact: small jacket-colored patch visible from a back-of-character below-the-hand angle.** When deleting the hidden skin body, the holes left at the wrist/cuff seams were filled with jacket-colored faces (UV `0.5`). A few of those fill faces are part of the back-side of the wrist surface and visible when the camera looks at the back of the hand from below. An attempt to recolor them to skin reintroduced the "skin stretch" symptom (they still have residual weight from neighboring verts), so reverted. **Accepted as ship-acceptable** because the typical idle-game camera angle (top-down 3/4 from above-and-behind) doesn't expose this view. Future fix options if it ever matters: (a) move fill verts slightly inside the hand to hide them, (b) introduce a transparent material slot for the fill faces, (c) sculpt the visible hand to cover them. None are blocking.
+- **Stage 2 cleanup not done.** ~800 inward-facing faces (clothing inner shells) could be removed for ~15% further vert reduction. Not blocking; future optimization opportunity.
+- **Temporary `player = 5` test override in `GamePlayState.cs` is still in place.** Marked `// TODO: REMOVE`. **Must be reverted before any commit that ships.**
+- **Icon is still null** on `5Archaeologist.asset`. Placeholder needed eventually.
+- **`PlayerArchaeologist.fbm/`** subfolder still contains a duplicate copy of the atlas extracted from the FBX. Harmless dead weight; could be eliminated by flipping `materialImportMode` in the .meta to `0` (None).
+
+---
+
 ## 2026-04-11 — PlayerArchaeologist rig and skinning fixed in-place via Blender MCP
 
 **Summary.** Five iterative rounds of mesh and weight surgery in Blender (live, via MCP) to make the new PlayerArchaeologist character animate without visible defects. Started from "visible but mostly broken" — head + boots floating apart, arms misweighted, body distorting on every step — and ended with "symmetric, no holes, no body distortion, hands tracking correctly with one minor stretching artifact left to address." All edits happened in the live Blender session against `Desktop/idle Relic/PlayerArchaeologist.blend` with the FBX re-exported to its project path each round. Multiple `*_pre_*.blend` checkpoints were saved as recovery snapshots.
