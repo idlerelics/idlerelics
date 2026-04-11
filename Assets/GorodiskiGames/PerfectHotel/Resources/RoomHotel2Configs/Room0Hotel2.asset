@@ -18,7 +18,7 @@ MonoBehaviour:
   TargetPurchaseProgress: 0
   PurchaseProgressReward: 0
   UpdateProgressReward: 3
-  StayDuration: 10
+  StayDuration: 22
   Lvls:
   - PriceUpdate: 0
     TargetUpdateProgress: 0
