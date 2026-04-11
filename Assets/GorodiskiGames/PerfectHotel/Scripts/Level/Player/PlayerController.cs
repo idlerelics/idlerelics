@@ -191,6 +191,7 @@ namespace Game.Level.Player
     public class PlayerModel : Observable
     {
         public Mesh BodyMesh;       // The 3D mesh used for the player's body
+        public Material BodyMaterial; // Optional per-character material override (null = keep prefab default)
         public UnitSexType Sex;     // Male or female character type
         public string Label;        // Display name of the character
         public int Index;           // Unique index identifying this player
@@ -213,6 +214,7 @@ namespace Game.Level.Player
         {
             Index = (int)config.Index;
             BodyMesh = config.Body;
+            BodyMaterial = config.BodyMaterial;
             Label = config.LabelKey;
             Icon = config.Icon;
             Sex = config.Sex;

@@ -31,10 +31,14 @@ namespace Game.Level.Player
         /// Called when the player's data model changes.
         /// Updates the 3D body mesh to match the model's BodyMesh.
         /// "sharedMesh" is used instead of "mesh" to avoid creating a copy (saves memory).
+        /// If the model provides a BodyMaterial, also swap it (per-character palette);
+        /// otherwise the prefab's default material is kept.
         /// </summary>
         protected override void OnModelChanged(PlayerModel model)
         {
             _body.sharedMesh = model.BodyMesh;
+            if (model.BodyMaterial != null)
+                _body.sharedMaterial = model.BodyMaterial;
         }
     }
 }
