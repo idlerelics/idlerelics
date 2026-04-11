@@ -55,6 +55,33 @@ namespace Game.Level.Item
         public event Action<ItemController> PLAYER_ON_ITEM;           // Player is standing on this item
         public event Action<ItemController> ITEM_FINISHED;            // Player finished the interaction
         public event Action<ItemController> UNIT_LEFT_TOILET_CABINE;  // A unit left a toilet cabin
+        public event Action<ItemController> CLAIM_REVOKED;            // Current claimer was bumped (e.g. player stole from cleaner)
+
+        // Soft "reservation" used so the cleaner NPC can pick a target without
+        // hiding it from the player. The player can always interact with any item;
+        // doing so revokes whatever claim the cleaner held.
+        public object ClaimedBy { get; private set; }
+        public bool IsClaimed => ClaimedBy != null;
+
+        /// <summary>
+        /// Reserves this item for a specific claimer (cleaner, player state, etc.).
+        /// If a different claimer already held it, fires CLAIM_REVOKED so the old
+        /// owner can abort cleanly.
+        /// </summary>
+        public void Claim(object claimer)
+        {
+            if (claimer == null) return;
+            if (ClaimedBy != null && !ReferenceEquals(ClaimedBy, claimer))
+                CLAIM_REVOKED.SafeInvoke(this);
+            ClaimedBy = claimer;
+        }
+
+        /// <summary>Releases this item only if the supplied claimer is the current owner.</summary>
+        public void Release(object claimer)
+        {
+            if (ReferenceEquals(ClaimedBy, claimer))
+                ClaimedBy = null;
+        }
 
         private ItemModel _model;      // The item's data model (duration, etc.)
         private Transform _transform;  // Position in the world

@@ -36,6 +36,10 @@ namespace Game.Level.Player
         /// </summary>
         public override void Initialize()
         {
+            // Claim the item for the player. If a cleaner NPC was walking toward it
+            // (or already cleaning it), this fires CLAIM_REVOKED and the cleaner aborts.
+            _item.Claim(this);
+
             // Remove item so no other player/NPC tries to use it simultaneously
             _gameManager.RemoveItem(_item);
 
@@ -51,8 +55,17 @@ namespace Game.Level.Player
             _timer.TICK -= OnTick;
 
             // If the item still has time left, put it back so it can be used again later
+            // and release the claim so the cleaner can pick it up again.
             if (_item.Model.Duration > 0f)
+            {
+                _item.Release(this);
                 _gameManager.AddItem(_item);
+            }
+            else
+            {
+                // Finished — clear the claim so the slot is clean for the next dig cycle.
+                _item.Release(this);
+            }
         }
 
         /// <summary>

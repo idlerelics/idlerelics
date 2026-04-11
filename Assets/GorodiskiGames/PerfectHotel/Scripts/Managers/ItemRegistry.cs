@@ -50,11 +50,13 @@ namespace Game
 
         public ItemController FindUsedItem(int targetArea, ItemType targetItem)
         {
+            // Used by NPCs (cleaner, loader) — skip items already claimed by another worker
+            // so two cleaners don't both try to grab the same torch.
             if (targetArea == -1)
             {
                 foreach (var item in _items)
                 {
-                    if (item != null && item.Type == targetItem)
+                    if (item != null && item.Type == targetItem && !item.IsClaimed)
                         return item;
                 }
                 return null;
@@ -64,7 +66,7 @@ namespace Game
             {
                 foreach (var item in areaList)
                 {
-                    if (item != null && item.Type == targetItem)
+                    if (item != null && item.Type == targetItem && !item.IsClaimed)
                         return item;
                 }
             }

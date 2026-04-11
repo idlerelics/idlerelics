@@ -25,7 +25,9 @@ namespace Game.Level.Cleaner
             var targetItem = _gameManager.FindUsedItem(_cleaner.Model.Area, _cleaner.View.TargetItem);
             if (targetItem == null) return;
 
-            _gameManager.RemoveItem(targetItem);
+            // Soft reservation: leave the item in the registry so the player can still
+            // walk up and steal it. Other cleaners will skip it because IsClaimed is true.
+            targetItem.Claim(_cleaner);
             _cleaner.SwitchToState(new CleanerWalkToItemState(targetItem));
         }
     }

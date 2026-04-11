@@ -58,6 +58,19 @@ namespace Game.States
             model.Hotel = _hotel;
             model.Save();
 
+            // DEBUG OVERRIDE: the Inspector-driven GameConfig.StartHotelOverride
+            // lets us force a specific hotel without touching code or polluting
+            // the save. Applied AFTER model.Save() so toggling the override off
+            // returns the player to their real progress. Leave at 0 for normal
+            // play. See Docs/DEVLOG.md for the history.
+            if (_config.StartHotelOverride > 0)
+            {
+                _hotel = _config.StartHotelOverride;
+                // Re-apply bounds so a bad Inspector value can't crash the load.
+                if (_hotel >= SceneManager.sceneCountInBuildSettings)
+                    _hotel = SceneManager.sceneCountInBuildSettings - 1;
+            }
+
             // EVENT SUBSCRIPTION: "+=" subscribes our method to an event.
             // When Unity finishes loading a scene, it fires sceneLoaded,
             // and our OnSceneLoaded method will be called automatically.

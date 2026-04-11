@@ -130,6 +130,17 @@ namespace Game.Config
         [Min(1)] public int AllScenariosDurationHrs;      // Duration of all scenarios in hours
         [Min(1)] public int NoScenarioDurationMinutes;     // Duration when no scenario is active, in minutes
         [SerializeField] private ShopProductIAPConfig[] _shopProductIAPConfigs; // In-app purchase product configs
+
+        // -----------------------------------------------------------------
+        // DEBUG / TESTING
+        // -----------------------------------------------------------------
+        [Header("Debug")]
+        [Tooltip(
+            "TESTING ONLY: force the game to load a specific hotel scene index at startup, " +
+            "ignoring the save. Leave at 0 to use the save normally. " +
+            "Does NOT modify the save -- toggling this off returns you to your real progress. " +
+            "Must match a valid scene build index (Hotel1 = 1, Hotel2 = 2, ...).")]
+        [Min(0)] public int StartHotelOverride = 0;
     }
 
     // [Serializable] tells Unity this class can be saved/loaded and shown in the Inspector.

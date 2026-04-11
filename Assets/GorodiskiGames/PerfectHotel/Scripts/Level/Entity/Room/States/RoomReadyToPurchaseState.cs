@@ -70,7 +70,9 @@ namespace Game.Level.Room
 
             _gameManager.FireAddGameProgress(_gameManager.Player.View.transform.position, _room.Model.PurchaseProgressReward);
 
-            _room.SwitchToState(new RoomAvailableState());
+            // A freshly excavated chamber starts unlit — the maid must come light its torches
+            // before any worker is allowed in. RoomUsedState already drives that loop.
+            _room.SwitchToState(new RoomUsedState());
             _gameManager.Player.SwitchToState(new PlayerPauseState());
 
             _gameManager.FireTryShowInterstitial();

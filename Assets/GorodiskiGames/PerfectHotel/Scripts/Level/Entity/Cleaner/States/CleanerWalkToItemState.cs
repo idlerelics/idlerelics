@@ -33,12 +33,16 @@ namespace Game.Level.Cleaner
         public override void Initialize()
         {
             base.Initialize();
+
+            _item.CLAIM_REVOKED += OnClaimRevoked;
         }
 
         /// <summary>Calls base to unsubscribe from timer events.</summary>
         public override void Dispose()
         {
             base.Dispose();
+
+            _item.CLAIM_REVOKED -= OnClaimRevoked;
         }
 
         /// <summary>
@@ -49,6 +53,15 @@ namespace Game.Level.Cleaner
         public override void OnReachDistance()
         {
             _cleaner.SwitchToState(new CleanerCleaningState(_item));
+        }
+
+        /// <summary>
+        /// The player walked up and stole this item. Abandon the trip and go idle —
+        /// the idle state will rescan the registry and pick a new target.
+        /// </summary>
+        private void OnClaimRevoked(ItemController _)
+        {
+            _cleaner.SwitchToState(new CleanerIdleState());
         }
     }
 }

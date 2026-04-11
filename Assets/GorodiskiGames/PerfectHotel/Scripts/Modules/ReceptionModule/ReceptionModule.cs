@@ -278,12 +278,8 @@ namespace Game.Level.Reception
             // Shift remaining customers forward in the queue
             _reception.Line.RearrangeCustomersLine();
 
-            // Charge the entrance fee and save the earnings
-            int fee = room.Model.EntranceFee;
-            _reception.Model.Cash += fee;
-            _reception.Model.SetChanged();  // Notify observers (updates cash display)
-
-            _gameManager.Model.SavePlaceCash(_reception.Model.ID, _reception.Model.Cash);
+            // No entrance fee in the archaeology theme — workers don't pay to register at base camp.
+            // All revenue comes from artifacts found during excavation (RoomOccupiedState trickle).
 
             // Spawn a new customer at the back of the line to replace the one that left
             AddCustomerToLine();
