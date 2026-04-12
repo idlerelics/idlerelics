@@ -6,6 +6,36 @@ A running log of meaningful changes, decisions, and gotchas for Lost Chambers: I
 
 ---
 
+## 2026-04-12 — PlayerExplorer (Player6): female explorer character created via Hunyuan3D + full pipeline
+
+**Summary.** Created a new female explorer character (Player6) from a reference image using Hunyuan3D for mesh generation, then processed through the full 3D pipeline: decimation, symmetry enforcement, material assignment, rigging with rigid-region weight cleanup, symmetric weight averaging, preflight check, FBX export, and Unity registration. Character follows the Archaeologist (Player5) per-character material pattern.
+
+### What changed
+
+- **`Desktop/idle Relic/PlayerExplorer_final.blend`** — Final Blender source file. Multiple checkpoints saved during pipeline: `_pre_generate`, `_pre_decimate`, `_pre_material`, `_pre_rig`, `_pre_export`, `_final`.
+- **`ResourcesStatic/Models/Units/PlayerExplorer.fbx`** — Exported character mesh. 2051 verts, 3954 faces, 22-bone armature matching PlayerA exactly. Single welded island, 0 boundary edges, perfect X=0 symmetry.
+- **`ResourcesStatic/Textures/PlayerExplorerAtlas.png`** (+ `.meta`) — 7-pixel wide atlas with color swatches: Skin, Hair (auburn), Shirt (khaki), Pants (brown), Belt (dark leather), Boots, Satchel. Import settings: `filterMode: 0` (Point), `enableMipMap: 0`, `maxTextureSize: 32`, `textureCompression: 0`.
+- **`ResourcesStatic/Materials/PlayerExplorerMaterial.mat`** (+ `.meta`) — Standard shader material referencing the explorer atlas.
+- **`Resources/PlayerConfigs/6Explorer.asset`** (+ `.meta`) — PlayerConfig: Index=6, Sex=Female, LabelKey=EXPLORER, Body=FBX mesh, BodyMaterial=explorer material, same attribute bonuses as Archaeologist, FreeConditionConfig unlock.
+- **`Scripts/Config/PlayerConfig/PlayerConfig.cs`** — Added `Player6 = 6` to PlayerIndex enum.
+- **`Resources/GameConfig.asset`** — Added 7th entry to `_playerConfigs` array (6Explorer GUID).
+- **`Scripts/States/GamePlayState.cs`** — Temporary test override changed from `player = 5` to `player = 6`.
+
+### Why
+
+This is the "Second Playable Character" from the game design — a female explorer archetype (auburn hair, khaki shirt, no Lara Croft copy). Used the same per-character material override pattern established for the Archaeologist, avoiding changes to the shared `AtlasMaterial.mat` / `AtlasTexture.png`.
+
+The Hunyuan3D generation ran locally and produced a ~275K face mesh that was decimated to ~4K faces. The mesh cleanup required: vertex-level coordinate rotation (Z-up to Y-up to match armature), uniform scaling (~67x to match armature dimensions), mirror-modifier symmetrization, dissolve of non-manifold verts to close persistent boundary edges, and final re-symmetrize.
+
+### Open items
+
+- **Temporary `player = 6` test override in `GamePlayState.cs` is in place.** Marked `// TODO: REMOVE`. Must be reverted before any commit that ships.
+- **Icon is null** on `6Explorer.asset`. Placeholder needed eventually.
+- **Material zone refinement** — the satchel strap and bag are not assigned as a separate color zone. The current assignment uses 5 zones (skin, hair, shirt, pants, belt, boots) with the satchel color unused. A future pass could add the satchel strap as a diagonal band across the front torso.
+- **Unity Play mode verification pending** — need to confirm idle/walk animations look correct, no weight-bleed artifacts.
+
+---
+
 ## 2026-04-11 — PlayerArchaeologist hidden skin body removed; rig saga signed off
 
 **Summary.** Final cleanup pass on the PlayerArchaeologist mesh: deleted the hidden inner skin body that was sitting underneath the pants/jacket and causing visible "skin color stretch" artifacts during walk. Mesh dropped from 3815 → 3763 verts (−52, −1.4%) and from 5762 → 5751 faces. One known cosmetic artifact remains (a small jacket-colored patch visible only from a back-of-character camera angle that the game doesn't normally use); accepted as ship-acceptable, see Open items.

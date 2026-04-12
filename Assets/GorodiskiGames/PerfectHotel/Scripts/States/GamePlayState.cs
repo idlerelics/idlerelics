@@ -73,10 +73,10 @@ namespace Game.States
             if (!_config.PlayersMap.ContainsKey(player))
                 player = 0; // Fall back to default player if the saved one doesn't exist
 
-            // TODO: REMOVE — temporary test override for PlayerArchaeologist (player index 5).
+            // TODO: REMOVE — temporary test override for PlayerExplorer (player index 6).
             // Forces the new character to spawn regardless of saved progress. Delete this
             // line once visual verification is done so normal player selection resumes.
-            if (_config.PlayersMap.ContainsKey(5)) player = 5;
+            if (_config.PlayersMap.ContainsKey(6)) player = 6;
 
             // Register default player interaction types (must be before PlayerController
             // creation because it copies _context into a sub-context)

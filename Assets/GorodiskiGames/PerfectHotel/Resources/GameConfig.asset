@@ -36,6 +36,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5bd5443d8d1894f4eba1efd6e10ef987, type: 2}
   - {fileID: 11400000, guid: 802311f1702694e609a4ec75027fd308, type: 2}
   - {fileID: 11400000, guid: b87ee2591fc44b40a8f4d018f4596be3, type: 2}
+  - {fileID: 11400000, guid: 933dfa1345f5c354c957b77094d01b7c, type: 2}
   _attributeConfigs:
   - {fileID: 11400000, guid: ea74a7df73e2c4b27872f14abb376d9a, type: 2}
   - {fileID: 11400000, guid: 06c3da1f8aa0744f79042b45691f713e, type: 2}
@@ -44,12 +45,13 @@ MonoBehaviour:
   - SceneIndex: 1
     Icon: {fileID: 21300000, guid: 800c98e5b79b244f3b55114c14b471fa, type: 3}
     Label: MARRION
-  - SceneIndex: 2
-    Icon: {fileID: 21300000, guid: 7516700ca74eb4f0687070b13bbde867, type: 3}
-    Label: CHILTON
+  - SceneIndex: 1
+    Icon: {fileID: 21300000, guid: 800c98e5b79b244f3b55114c14b471fa, type: 3}
+    Label: MARRION
   AdsProviderEditor: 1
   AdsProviderMobile: 1
   AllScenariosDurationHrs: 24
   NoScenarioDurationMinutes: 1
   _shopProductIAPConfigs:
   - {fileID: 11400000, guid: d932bb7082d0a496ab62f7f7e2446e4d, type: 2}
+  StartHotelOverride: 0
