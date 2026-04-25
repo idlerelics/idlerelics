@@ -6,6 +6,63 @@ A running log of meaningful changes, decisions, and gotchas for Lost Chambers: I
 
 ---
 
+## 2026-04-25 — PlayerAdventurer (Player6): male Indiana-Jones-style character via Hunyuan3D + full pipeline
+
+**Summary.** Created a new male Indiana-Jones-archetype character (Player6, internal name "Adventurer") from a reference image using Hunyuan3D, then processed through the full 3D pipeline: decimation, axis alignment, X=0 mirror symmetrize, 9-region atlas + UV assignment, rigging with rigid-region weight cleanup, symmetric weight averaging via mirror-pair, preflight pass, FBX export, Unity asset wiring. PlayerExplorer (also Player6) had been reverted in commit `da1a322`, so the Player6 slot was free; we reused it. Setup of the Unity-side PlayerConfig + GameConfig registration is gated on the user running an Editor menu item once.
+
+### What changed
+
+- **`Desktop/IdleRelic/PlayerAdventurer_*.blend`** — Blender source files. Checkpoints: `_pre_generate`, `_pre_decimate`, `_pre_material`, `_pre_rig`, `_pre_export`.
+- **`ResourcesStatic/Models/Units/PlayerAdventurer.fbx`** (+ `.meta`, GUID `f033a9792b3a4273be25c7351b2819b1`) — Exported character mesh. **3054 verts, 5876 faces, 22-bone armature** matching PlayerA exactly. Single welded island, 0 boundary edges, perfect X=0 mirror symmetry (max mirror dist 0.0000mm), 0 unweighted verts. `materialImportMode: 0` (None) — no work_mat sub-asset.
+- **`ResourcesStatic/Textures/PlayerAdventurerAtlas.png`** (+ `.meta`, GUID `8297094d7d0b44c3ac4163401248e1af`) — 9-pixel horizontal atlas: Skin, Hair, Hat, Hatband, Jacket, Shirt, Belt, Pants, Boots. Same import settings as PlayerArchaeologistAtlas (filterMode Point, no mipmaps, maxTextureSize 32).
+- **`ResourcesStatic/Materials/PlayerAdventurerMaterial.mat`** (+ `.meta`, GUID `f17be10dd4144c0db637412bf2d0bca6`) — Standard shader material referencing the new atlas.
+- **`Scripts/Config/PlayerConfig/PlayerConfig.cs`** — Added `Player6 = 6` to PlayerIndex enum.
+- **`Scripts/States/GamePlayState.cs`** — Temporary test override changed from `player = 5` (Archaeologist) to `player = 6` (Adventurer), still marked `// TODO: REMOVE`.
+- **`Assets/Editor/PlayerAdventurerSetup.cs`** — One-shot Editor utility (`Tools > Setup PlayerAdventurer`) that reads the deterministic FBX mesh sub-asset fileID, creates `Resources/PlayerConfigs/6Adventurer.asset` with proper Body + BodyMaterial references, and appends it to `GameConfig._playerConfigs`. **User must run this once after Unity reimports the new assets**, then delete the script.
+
+### Why
+
+This is the male character from the design doc ("Male: Indiana Jones archetype — fedora, leather jacket, brown/khaki"). The current shipped PlayerArchaeologist (Player5) is functional but had 5 rounds of repair behind it and one accepted cosmetic artifact. The user provided a cleaner reference image and asked for a fresh character via the standard pipeline. We slotted it as Player6 (Explorer's freed slot) rather than overwriting Archaeologist, so both old and new can coexist.
+
+### Pipeline iteration notes (gotchas hit and resolved)
+
+1. **`bpy.ops.wm.read_homefile()` killed the Blender MCP socket** on first attempt to reset the scene. Workaround: don't use `read_homefile`; just manually delete all objects and add a temp cube to give FBX import an active object for its mode_set poll.
+2. **First Hunyuan3D call returned "no data received"** but actually completed in the background; the second retry caused a duplicate import (`geometry_0` and `geometry_0.001`). Lesson: when the API errors, check `get_scene_info` before retrying — the import may already have happened.
+3. **Hunyuan output came in Z-up at correct meter scale**, unlike PlayerExplorer (which was Z-up but unscaled and needed 67x). No rotation needed for the mesh, just a 1.054x uniform scale to match PlayerA's 2.099m height.
+4. **PlayerA's armature came in Y-up while the mesh was Z-up** — orientation mismatch was the root cause of `ARMATURE_AUTO` failing with "Bone Heat Weighting: failed to find solution for one or more bones" and all 3055 verts unweighted. Fix: rotate the armature 90° around X and apply, so its bone-data Y-axis becomes the world Z-axis aligning with the mesh. *And* an earlier `transform_apply(scale=True)` on the armature had collapsed bone-internal cm units into meter units — so the armature's edit-bone data is at 100x the display scale and the bone envelopes were 1mm radius (envelope-parent path also failed). The fix sequence: (a) rescale armature 0.01x and apply to bake cm→m into bone data, (b) rotate 90° around X and apply to switch Y-up→Z-up, (c) restore 100x scaling on bone envelope radii so envelope/heat have something to work with.
+5. **Mesh object scale silently became 0.01x** during the parent-set/clear-parent dance, making `gen.dimensions` show 13mm × 9mm × 21mm. Fix: explicitly `gen.scale = (1,1,1)`. Visible only via `view_layer.update()` afterwards — the dimensions cache is stale until then.
+6. **`img.pixels = list(...)` and `img.pixels.foreach_set(...)` both silently produced an all-zero atlas** in this Blender version. Workaround: write the PNG bytes directly using stdlib `struct + zlib` (105-byte minimal RGBA PNG), then `bpy.data.images.load(path)`. Pixel verification confirmed correct values immediately. *Add to Section 7 (Blender MCP Gotchas) of `3D_PIPELINE.md`.*
+7. **Hand-zone SKIN classification at `cz < 1.00, |x| > 0.42` bled up into the lower sleeve** (130 SKIN faces in the cuff zone where they should be JACKET). Tightening to `0.50 < cz < 0.82` cleaned it. Lesson: position-based UV classification needs both lower AND upper bounds for hand-zone, not just an upper bound.
+8. **Face/hair boundary on the head sides** — initial `ny < -0.3` test was too strict for cheek/jaw verts (those normals point sideways or slightly down). Switched to `cy < 0.08` (front half of head in scene's coordinate frame) plus an optional sliver-side rule for ear-level skin. Verified visually before rigging.
+9. **Bone Heat algorithm worked once orientation was fixed** — full ARMATURE_AUTO produced a proper distribution (Spine=132, Spine1=84, Spine2=73, Hips=37) that's typical for a chibi humanoid. Asymmetry from auto-weights was nuked by mirror-pair averaging (max diff after: LeftUpLeg=169 vs RightUpLeg=164, +5 floating-point tie-break). All Left/Right pairs match exactly otherwise.
+10. **8 boundary edges appeared after deleting 6 zero-area faces** post-decimate. `mesh.fill_holes(sides=4)` closed them with 2 new faces; mesh ended at 5876 faces, 0 boundary edges, 1 island. Re-symmetrized weights afterward.
+
+### Final mesh state
+
+```
+3054 verts, 5876 faces, 1 mesh island, 0 boundary edges
+22 bind bones (matching PlayerA exactly, AimNode deleted)
+Bind pose asymmetry preserved: LEFT chain UP, RIGHT chain DOWN
+Symmetric weights:
+  LeftHand=234   RightHand=234
+  LeftArm=67     RightArm=67
+  LeftForeArm=47 RightForeArm=47
+  LeftFoot=111   RightFoot=111
+  LeftUpLeg=169  RightUpLeg=164  (5 verts of FP tie-break)
+  Hips=39   Spine=129  Spine1=84  Spine2=73  Neck=38  Head=1204
+0 unweighted verts
+```
+
+### Open items
+
+- **User must run `Tools > Setup PlayerAdventurer`** in Unity once the new assets are reimported. This creates `6Adventurer.asset`, sets its Body/BodyMaterial refs (with the deterministic FBX mesh fileID), and appends it to `GameConfig._playerConfigs`. **After running, delete `Assets/Editor/PlayerAdventurerSetup.cs`.**
+- **Temporary `player = 6` test override in `GamePlayState.cs` is in place.** Marked `// TODO: REMOVE`. Must be reverted before any commit that ships.
+- **Icon is null** on `6Adventurer.asset`. Placeholder needed eventually.
+- **Unity Play mode verification pending** — need to confirm idle/walk/carry animations look correct, no weight-bleed artifacts, atlas colors render correctly.
+- **Eye/eyebrow geometry from Hunyuan kept as dark patches** — they happen to fall into the HAIR atlas pixel because of their normals/position, which is the right look for chibi eyes (per reference image). Not a defect, just worth noting.
+
+---
+
 ## 2026-04-12 — PlayerExplorer (Player6): female explorer character created via Hunyuan3D + full pipeline
 
 **Summary.** Created a new female explorer character (Player6) from a reference image using Hunyuan3D for mesh generation, then processed through the full 3D pipeline: decimation, symmetry enforcement, material assignment, rigging with rigid-region weight cleanup, symmetric weight averaging, preflight check, FBX export, and Unity registration. Character follows the Archaeologist (Player5) per-character material pattern.

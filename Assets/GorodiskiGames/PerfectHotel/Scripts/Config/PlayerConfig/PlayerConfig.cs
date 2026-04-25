@@ -26,7 +26,8 @@ namespace Game.Config
         Player2 = 2,
         Player3 = 3,
         Player4 = 4,
-        Player5 = 5
+        Player5 = 5,
+        Player6 = 6
     }
 
     /// <summary>
