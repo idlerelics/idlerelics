@@ -6,6 +6,197 @@ A running log of meaningful changes, decisions, and gotchas for Lost Chambers: I
 
 ---
 
+## 2026-04-26 — Player rig migrated to Mixamo + Humanoid avatar; per-character prefab path added
+
+**Summary.** Rebuilt the playable-character architecture around Unity Humanoid avatars and Mixamo-rigged FBXs. Existing PlayerA-rigged playable characters (BellhopMan/Woman, Gustav, PlayerA, PlayerB, Archaeologist, Adventurer) are still listed in `GameConfig._playerConfigs` and still work via the legacy mesh-swap path; Adventuress is the first character on the new path. NPCs (workers/customers) keep using `Player.prefab` + PlayerA's `UnitAC.controller` untouched.
+
+The new path: each Mixamo character is a self-contained prefab (its own armature, animator, avatar, controller). At runtime, `GamePlayState` instantiates the per-character prefab and disables the legacy scene-placed `Player.prefab`. The `Walk` and `Idle` clips come from Mixamo (downloaded "Without Skin", imported as Humanoid with `CreateFromThisModel`), and Unity's humanoid retargeting plays them correctly on the Adventuress avatar even though the bone hierarchies don't match exactly.
+
+### What changed
+
+- **`Scripts/Config/PlayerConfig/PlayerConfig.cs`** — Added `Prefab: GameObject` field. When set, the legacy `Body: Mesh` and `BodyMaterial: Material` fields are bypassed and the prefab is instantiated at runtime instead.
+- **`Scripts/States/GamePlayState.cs`** — New spawn branch: if the selected `PlayerConfig.Prefab` is non-null, instantiate it at the legacy PlayerView's position and disable the legacy GameObject. Otherwise fall back to the legacy PlayerView (mesh swap).
+- **`Scripts/Level/Player/PlayerView.cs`** — `OnModelChanged` now skips the SkinnedMeshRenderer mesh swap when `model.BodyMesh` is null. Required because prefab-path characters have null Body (the prefab carries its own mesh).
+- **`Assets/_Tests/PlayerAdventuressMixamo/PlayerAdventuressMixamo.fbx`** — Mixamo-rigged Adventuress (auto-rigged on Mixamo's site from the Adventuress unrigged FBX). Imported as **Humanoid** (`animationType: 3`); auto-generated `PlayerAdventuressMixamoAvatar` is valid (`isHuman=True isValid=True`).
+- **`Assets/_Tests/PlayerAdventuressMixamo/AdvanturessIdle.fbx`** — Mixamo "Idle" clip downloaded "Without Skin". Configured as Humanoid with `CreateFromThisModel`; `Idle` clip looping (8.33s).
+- **`ResourcesStatic/Animation/PlayerMixamoAC.controller`** — New AnimatorController. 4 states (Idle, IdleFemale, Walk, WalkFemale). Idle states play the Mixamo Idle clip; Walk states play the Mixamo Walk clip. No transitions/parameters — the existing game code drives state changes directly via `Animator.PlayInFixedTime(StringToHash(stateName), 0, t)` (see `UnitView.PlayAnimation`).
+- **`ResourcesStatic/Prefabs/Units/Player_Adventuress.prefab`** — Per-character prefab. FBX root + Animator (PlayerMixamoAC + Adventuress avatar, `applyRootMotion=false`, `cullingMode=AlwaysAnimate`) + NavMeshAgent (speed 3.5, radius 0.5, height 2) + Rigidbody (kinematic, freeze rotation) + BoxCollider + PlayerView + InventoryHolder child. SkinnedMeshRenderer uses `PlayerAdventuressMaterial` and `updateWhenOffscreen=true`.
+- **`Resources/PlayerConfigs/7Adventuress.asset`** — Body and BodyMaterial cleared (now null); `Prefab` field references `Player_Adventuress.prefab`.
+- **`Assets/Editor/PlayerMixamoSetup.cs`** — One-shot rebuild tool (`Tools > Setup PlayerMixamo (Adventuress prefab)`). Re-runnable; deletes and recreates the controller + prefab from the FBX, then **automatically re-wires** `7Adventuress.asset.Prefab` to the new prefab's current fileID.
+
+### Why each architectural choice
+
+- **Humanoid + retargeting (not Generic):** Mixamo's whole pipeline assumes Humanoid. With Humanoid, *any* future Mixamo download works on the Adventuress avatar — bones don't need to match exactly. We tried `CopyFromOther` for the Idle FBX's avatar setup; it errored with "Copied Avatar Rig Configuration mis-match. Transform hierarchy does not match." because Mixamo's "Without Skin" download has slightly different extras (head-top end, finger-tip helpers). `CreateFromThisModel` plus runtime humanoid retargeting works perfectly.
+- **Per-character prefab (not just Mesh swap):** PlayerA's shared armature pattern requires every character to use PlayerA's exact 22-bone skeleton with its asymmetric bind pose. Mixamo's 41-bone skeleton (with `mixamorig:` prefix and finger bones) is incompatible. The new prefab path lets each character carry its own armature/avatar/animator, which is what Humanoid retargeting expects.
+- **Legacy path kept (not deleted yet):** The old PlayerConfig entries (Players 0-6) still work via mesh swap. We're not deleting them yet because (a) save data may reference index 0-6, and (b) NPCs share the same `UnitAC.controller`. Once enough Mixamo characters exist, we can prune.
+- **NPCs untouched:** Customers/workers (in `Level/Units/`) use `Player.prefab` + `UnitAC.controller`. Migrating them to Mixamo is a parallel effort, not blocking. They keep working as-is.
+- **`Animator.cullingMode = AlwaysAnimate` + `SMR.updateWhenOffscreen = true`:** Defensive against Humanoid retargeting moving bones outside the bind-pose bounds and triggering wrongful frustum culling. Set in `PlayerMixamoSetup`.
+
+### Pipeline iteration notes (gotchas hit and resolved)
+
+1. **`CopyFromOther` avatar setup fails** when source and target FBXs from Mixamo differ in tiny ways (e.g., `mixamorig:HeadTop_End` present in one but not the other). Switched to `CreateFromThisModel`. Runtime Humanoid retargeting handles the mapping.
+2. **Stale-fileID bug after re-running setup script.** Deleting and recreating the prefab gives the root GameObject a new internal fileID. Existing references to the old fileID (in PlayerConfig assets) silently resolve to `<null>` at runtime even though the YAML still shows `Prefab: {fileID: <old>, guid: <correct>}`. The "config.Prefab=null" check fired; legacy mesh-swap path ran instead of the prefab path; user saw the legacy player with no mesh (because Body was null too). **Fix in `PlayerMixamoSetup.cs`:** after `SaveAsPrefabAsset`, load the new prefab and re-assign `7Adventuress.asset.Prefab` via SerializedObject. Idempotent re-runs no longer break.
+3. **Character invisible at runtime, camera moves:** First diagnostic run showed `SMR.gameObject.activeInHierarchy=False` — turned out to be a false alarm (prefab assets always report that since they're not in a scene). The actual cause was the stale-fileID bug above. Adding `cullingMode=AlwaysAnimate` and `updateWhenOffscreen=true` was the right defensive measure regardless.
+4. **`PlayerView.Idle(Female, ...)` calls `PlayInFixedTime("IdleFemale", ...)`** — not `Idle`. The controller MUST have an `IdleFemale` state for Sex=Female characters or the animator stays stuck on whatever was previously playing (initial spawn = first frame of default state, often looking like T-pose). Same for `WalkFemale` defensively. The `UnitView.PlayAnimation` path uses `StringToHash(AnimationType.ToString())` and silently does nothing if the hash doesn't resolve to a state.
+5. **Mixamo's Walk imports as a single short clip (~30 frames, 0.97s)** named `Walk` in the FBX (after we configured clip animations during Adventuress's first Humanoid reimport). Mixamo's Idle imports as a longer clip (~250 frames, 8.33s) named `mixamo.com` by default. The setup script renames it to `Idle` and sets `loopTime=true` via `ModelImporter.clipAnimations`.
+
+### Adding more Mixamo characters in the future
+
+The PlayerMixamoSetup script is hardcoded for Adventuress, but the steps are mechanical:
+
+1. **Generate / acquire the mesh** (Rodin or other), export unrigged FBX
+2. **Auto-rig on Mixamo** (upload, place control points, download "With Skin")
+3. **Drop the rigged FBX** somewhere under `Assets/...`
+4. **Set FBX import settings**: `animationType: 3` (Humanoid), `avatarSetup: 1` (CreateFromThisModel)
+5. **Download Mixamo animation FBXs "Without Skin"** for each animation needed (Idle, Walk, Carry, Pickup, etc.); set them as Humanoid + `CreateFromThisModel` + clip looping for cyclic clips
+6. **Build a new AnimatorController** with states named to match the game's `AnimationType` enum: `Idle`, `IdleFemale`, `Walk`, `WalkFemale`, plus future `Carry`, `Sleep`, etc. as needed by `UnitView`
+7. **Build the per-character prefab**: copy the Animator+NavMeshAgent+Rigidbody+BoxCollider+PlayerView+InventoryHolder pattern from `Player_Adventuress.prefab`
+8. **Create a `PlayerConfig` asset** with `Prefab` pointing at the new prefab (`Body` and `BodyMaterial` left null)
+9. **Add the new PlayerConfig** to `GameConfig._playerConfigs` array
+
+The pattern is reusable enough that we can write a generic `PlayerMixamoSetup<T>` later if it gets repetitive. For now, copy/adapt the existing script per character.
+
+### Open items
+
+- **NPC migration to Mixamo not started.** Customers/workers still use `Player.prefab` + `UnitAC.controller` + PlayerA-rigged FBXs. Working as-is; no urgency.
+- **Old PlayerConfigs (Players 0-6) not deleted.** They still work via legacy mesh-swap. Delete when comfortable that no save data will break and NPCs no longer need them as a side effect.
+- **Idle/Walk transition is instant (no crossfade)** because `PlayInFixedTime` bypasses the AnimatorController's transitions. If you want smoother blending, switch to a `Speed` float parameter and let the controller drive transitions instead of `UnitView.PlayAnimation`.
+- ~~**Carry / Pickup / Place animations missing on Mixamo controller.**~~ **Done (2026-04-26):** added `Box Idle.fbx` and `Box Walk.fbx` from Mixamo (downloaded "Without Skin", configured as Humanoid + CreateFromThisModel + looping via `ConfigureMixamoClips`). PlayerMixamoSetup now adds a synced **Carry** layer (layer 1, sync source = layer 0, default weight 0) with `SetStateEffectiveMotion` overriding Idle/IdleFemale/Walk/WalkFemale with BoxIdle/BoxWalk. **Avatar mask `PlayerMixamoCarryMask.mask`** restricts the carry layer to upper-body only (Body, Head, Arms, Fingers, HandIK active; Root, Legs, FootIK off) — Mixamo's "Without Skin" Box clips' lower-body retargets badly onto the Adventuress avatar (twisted left leg in test), so legs continue from layer 0's regular Walk/Idle. Pickup/Place gestures still TODO if you want explicit one-shots; the current carry-overlay handles "carrying while moving" generically.
+- **Promotion of Adventuress to Player1 (default character)** still queued from the earlier project memory. Currently she's at index 7 with the test override `if (_config.PlayersMap.ContainsKey(7)) player = 7;` in `GamePlayState.cs`.
+- **Test FBXs in `Assets/_Tests/PlayerAdventuressMixamo/`** — production references the FBXs there. Don't move them without updating `PlayerMixamoSetup.cs` paths first.
+- **`PlayerAdventuressMixamoTest.unity` (test scene)** can be deleted when no longer needed for isolated rig inspection. Production uses the regular gameplay scenes.
+
+---
+
+## 2026-04-26 — PlayerAdventuress (Player7): female adventurer via Hyper3D Rodin (textured) + adapted pipeline (asymmetric hair preserved)
+
+**Summary.** First character built via the **Hyper3D Rodin** path instead of Hunyuan3D — Fabian generated the mesh directly with the Rodin Blender plugin (their newly-subscribed API) and handed it off textured. New pipeline branch: keep Rodin's baked 512×512 texture and original UV layout instead of building a 9-pixel atlas. Also first character with **deliberately asymmetric hair** — the reference (blonde, side-swept ponytail) wouldn't survive a normal `mesh.symmetrize` pass. Solved by classifying hair-vs-body verts via per-vertex texture-color sampling, separating hair into a child object, symmetrizing only the body, decimating both halves separately, then progressively merging the seam (5/15/30mm in head zone). Final mesh: 1958 verts, 3902 faces, 1 island, 80 accepted interior boundary edges (the hair-shell hybrid is not watertight by design).
+
+### What changed
+
+- **`Desktop/IdleRelic/PlayerAdventuress_*.blend`** — Blender source files. Checkpoints: `_pre_generate`, `_pre_decimate`, `_pre_symmetrize`, `_pre_decimate2`, `_pre_join`, `_pre_rig`, `_pre_export`, `_final`.
+- **`Desktop/IdleRelic/PlayerAdventuress_reference.png`** — 1024×1536 transparent reference (the original ChatGPT-generated PNG, after Blender re-encoded it to strip non-standard metadata).
+- **`Desktop/IdleRelic/PlayerAdventuress_textures/PlayerAdventuressTexture.png`** — Rodin-baked 512×512 texture, exported to disk after Rodin's import packed it in a temp folder.
+- **`ResourcesStatic/Models/Units/PlayerAdventuress.fbx`** (+ `.meta`, GUID `9d4f1a8b6c3e2d5f7a9b8c0d1e2f3a4b`) — Exported character mesh. **1958 verts, 3902 faces, 22-bone armature** matching PlayerA exactly. Single mesh island, **80 interior boundary edges accepted** (the seam between symmetric body and asymmetric hair shell — see below). Body region (Z<1.30) perfectly mirror-symmetric (max distance 0.000mm); hair region intentionally asymmetric. 0 unweighted verts. `materialImportMode: 0` (None), `animationType: 2` (Generic).
+- **`ResourcesStatic/Textures/PlayerAdventuressTexture.png`** (+ `.meta`, GUID `5e9c8a3f1b2d4e6a7c8b9d0e1f2a3b4c`) — Rodin's baked 512×512 RGBA texture. **Different settings from prior characters' atlases**: `maxTextureSize: 512` (not 32), `enableMipMap: 1`, `filterMode: 1` (Bilinear, not Point), platform compression on. The texture is a full UV-baked photo-realistic-ish render, not a per-zone color palette.
+- **`ResourcesStatic/Materials/PlayerAdventuressMaterial.mat`** (+ `.meta`, GUID `7b1c8d2e9f3a4b5c6d7e8f9a0b1c2d3e`) — Standard shader material referencing the Rodin texture via `_MainTex`. Modeled exactly on `PlayerAdventurerMaterial.mat`.
+- **`Scripts/Config/PlayerConfig/PlayerConfig.cs`** — Added `Player7 = 7` to `PlayerIndex` enum.
+- **`Scripts/States/GamePlayState.cs`** — Test override changed from `player = 6` (Adventurer) to `player = 7` (Adventuress). Still marked `// TODO: REMOVE`.
+- **`Assets/Editor/PlayerAdventuressSetup.cs`** — One-shot Editor utility (`Tools > Setup PlayerAdventuress`) that locates the FBX mesh sub-asset, creates `Resources/PlayerConfigs/7Adventuress.asset` (Index=7, Sex=Female, LabelKey=ADVENTURESS, Body+BodyMaterial wired, FreeConditionConfig unlock), and appends to `GameConfig._playerConfigs`. **User must run once after Unity reimports**, then delete the script.
+
+### Why a new pipeline variant
+
+Two structural differences from PlayerAdventurer:
+
+1. **Texture path**: Rodin produces a complete photo-textured mesh — no value in re-UV-ing it onto a 9-pixel palette. The character's color richness (blonde gradient, jacket leather sheen, skin tones) lives in the 512×512 texture pixels, not in the per-vertex color zones. So we keep Rodin's UVs untouched and ship the bigger texture as-is. **The pipeline now supports both paths** — the 9-pixel atlas (Archaeologist, Adventurer) for stylized flat-color characters, and the full baked texture (Adventuress, future Rodin characters) for photo-textured characters. PlayerView's per-character material override (added during Archaeologist) handles both via the same code path.
+
+2. **Asymmetric hair**: The reference image has a deliberately side-swept high ponytail (volume on character's left, sparse on right). The pipeline's "perfect mirror symmetry across X=0" rule would destroy this. New approach:
+   - Classify each vertex as HAIR (blonde) vs BODY using per-vertex texture-color sampling: average UV across faces touching that vert, sample the texture, classify as hair if HSV-hue ∈ [30°,60°] AND saturation ≥ 0.30 AND value ≥ 0.55 AND Z ≥ 1.45 (filters jacket-buckle / belt false positives below the head).
+   - Separate hair faces into a child object (`PlayerAdventuressHair`).
+   - Symmetrize the body via `mesh.symmetrize(POSITIVE_X)` (works perfectly).
+   - Decimate body and hair to mobile budget separately. Decimate Collapse breaks symmetry on the body, so re-symmetrize after decimate.
+   - Re-join hair into body, then merge seam progressively (5mm → 15mm → 30mm thresholds, head zone Z≥1.40 only — broader thresholds destroy hair shape).
+   - Final preflight: symmetry check on body region only (Z<1.30); hair zone is intentionally asymmetric and weighted 100% to Head bone (single rigid bone, no left/right pair to mirror against).
+
+### Pipeline iteration notes (gotchas hit and resolved)
+
+1. **MCP-side Hyper3D Rodin generation fails with `Error: Input buffer contains unsupported image format` (Sharp library)** even after re-encoding the PNG cleanly. Tried original PNG, Blender re-saved PNG, hand-written 1024×1024 stdlib PNG — all rejected. The error is in `Sharp.toBuffer` on the SERVER side; the BlenderMCP addon's transmission of the image bytes is not what Sharp expects. **Workaround**: Fabian generated the mesh directly with the Rodin Blender plugin (their official Blender addon) instead of going through Blender MCP. **Pipeline note**: For Rodin generation, use the **Rodin Blender plugin directly** — don't use `mcp__blender__generate_hyper3d_model_via_images`. Hunyuan3D via MCP still works for that path.
+2. **Rodin imported two near-identical meshes** (`model` and `model.001`). Picked `model.001` because its ponytail asymmetry direction matched the reference (volume on character's left = viewer's right). Deleted `model` + its material/texture before proceeding.
+3. **Rodin's texture is packed AND in temp folder**: `C:\Users\FABIAN~1\AppData\Local\Temp\<uuid>_base_basic_shaded\<hash>_shaded.png`. Saved to a permanent path alongside the .blend (`PlayerAdventuress_textures/PlayerAdventuressTexture.png`) by setting `img.filepath_raw = new_path` then `img.save()`. The packed copy survives, so Blender doesn't break.
+4. **`bpy.ops.transform_apply(rotation=True)` silently fails on the empty-scene-after-reload context**: the operator-poll succeeds but no active object means the operator no-ops. Workaround: explicitly set `bpy.context.view_layer.objects.active = body` before any `bpy.ops.object.*` call. Hit twice during the join+merge iteration when reloading from `_pre_join.blend`.
+5. **Decimate Collapse breaks mesh symmetry even when input is symmetric** (max mirror distance 0mm → 67mm post-decimate). The collapse modifier makes locally-greedy decisions that diverge on left vs right. Fix: re-run `mesh.symmetrize(POSITIVE_X)` after decimating; it deletes the `-X` half and mirrors `+X`, restoring perfect symmetry.
+6. **50mm head-zone merge is too aggressive** — drags bangs verts down onto the eye area, producing visible "tear streaks" (hair-color UVs displaced onto skin texture). 30mm is the sweet spot — leaves ~80 interior boundary edges but keeps hair shape clean and bangs above the eyebrows.
+7. **Snapping hair boundary verts to nearest body verts BEFORE join** (alternate strategy) was strictly worse: multiple hair verts snap to the same body vert, creating zero-area faces and *more* boundary edges (300+ instead of 80).
+8. **The 80 leftover interior boundary edges look like jagged tears at the hairline FROM THE FRONT** when face-flagged and inspected with vertex colors. **From idle-game camera angles** (3/4 from above and slightly behind), they're not visually destructive — the texture covers them. **Accepted as ship-acceptable** like PlayerArchaeologist's "jacket-colored back-of-hand patch."
+9. **PlayerA armature axis/scale fix** (same as PlayerAdventurer): import PlayerA.fbx, delete the GlobalCtrl empty parent (which provided 0.01 scale + 90° X rotation in matrix_world), then on the now-bare armature: scale 0.01x and apply (cm→m bake into bone data), rotate +90° X and apply (Y-up→Z-up), then multiply edit-bone envelope radii by 100x to restore. Bones land at PlayerA-reference values: Hips Z=0.6385, Head Z=1.2768, LeftHand at (X=0.49, Z=0.864).
+10. **Auto-weights via Bone Heat worked first try** (no orientation issues this time, unlike PlayerAdventurer which needed extensive fix-ups). Initial distribution was asymmetric (LeftUpLeg=97 vs RightUpLeg=46); rigid-region cleanup + mirror-pair averaging brought all Left/Right pairs to perfect symmetry. **Hips=0** after auto-weights (chibi proportions push pelvis verts to UpLeg/Spine); manually boosted Hips weight on lower-torso verts (Z 0.45-0.70, |x|<0.20) with a linear ramp.
+
+### Final mesh state
+
+```
+1958 verts, 3902 faces, 1 mesh island, 80 boundary edges (interior, accepted)
+22 bind bones (matching PlayerA exactly, AimNode deleted)
+Bind pose asymmetry preserved: LEFT chain UP, RIGHT chain DOWN
+Body region (Z<1.30): max mirror dist 0.000mm
+Hair region (Z>=1.30): intentionally asymmetric; locked 100% to Head bone
+Symmetric body weights:
+  LeftHand=68    RightHand=68
+  LeftArm=64     RightArm=64
+  LeftForeArm=6  RightForeArm=6
+  LeftLeg=89     RightLeg=89
+  LeftFoot=20    RightFoot=20
+  LeftToeBase=55 RightToeBase=55
+  LeftShoulder=4 RightShoulder=4
+  LeftUpLeg=6    RightUpLeg=6
+  Head=942 (face/skull/hair, locked)
+  Spine2=122 Spine=91 Spine1=88 Neck=83 Hips=36
+0 unweighted verts
+```
+
+### Open items
+
+- **User must run `Tools > Setup PlayerAdventuress`** in Unity once the new assets are reimported. Creates `7Adventuress.asset`, sets Body+BodyMaterial refs (with the deterministic FBX mesh fileID), and appends it to `GameConfig._playerConfigs`. **After running, delete `Assets/Editor/PlayerAdventuressSetup.cs`.**
+- **Temporary `player = 7` test override in `GamePlayState.cs`** — marked `// TODO: REMOVE`. Must be reverted before any commit that ships.
+- **Icon is null** on `7Adventuress.asset`. Placeholder needed eventually.
+- **Unity Play mode verification pending** — need to confirm idle/walk/carry animations look correct, no weight-bleed artifacts, hair shell stays attached to head, texture renders correctly at 512×512.
+- **80 interior boundary edges** are accepted as ship-acceptable. Future visual polish opportunity: bridge_edge_loops on specific paired hair-body rims (manual/scripted), or extrude hair shell down into skull to bury the seam.
+
+---
+
+## 2026-04-25 — SarcophagusA: first static asset via Hunyuan3D + adapted pipeline
+
+**Summary.** First non-character asset produced via the Hunyuan3D pipeline — a golden Egyptian sarcophagus for chamber decoration. Pipeline largely the same as for characters but with a few simplifications (no armature, no rig checks, no PlayerConfig) and one new wrinkle (output prefab instead of registering in GameConfig). Authored standing-up at 1.2m height; designer rotates 90° in scene to lay it flat. 4-pixel mini-atlas (Gold / DarkBlue / LightBlue / DarkOutline) instead of the 9-pixel character atlas.
+
+### What changed
+
+- **`Desktop/IdleRelic/SarcophagusA_*.blend`** — Blender source files. Checkpoints: `_pre_generate`, `_pre_decimate`, `_pre_material`, `_pre_export`, `_final`.
+- **`ResourcesStatic/Models/SarcophagusA.fbx`** (+ `.meta`, GUID `90dbb924...`) — Static mesh, 3587 verts / 6902 faces. Authored standing on Z axis, 1.2m tall × 0.47m wide × 0.58m thick. Single welded island, 0 boundary edges, perfect X=0 mirror symmetry. `materialImportMode: 0` (None), `animationType: 0` (None — static).
+- **`ResourcesStatic/Textures/SarcophagusAAtlas.png`** (+ `.meta`, GUID `79a44104...`) — 4-pixel atlas: GOLD / DARK_BLUE / LIGHT_BLUE / OUTLINE. Same import settings as character atlases (Point filter, no mipmaps, max 32px).
+- **`ResourcesStatic/Materials/SarcophagusAMaterial.mat`** (+ `.meta`, GUID `07dae455...`) — Standard shader, references the atlas via `_MainTex`.
+- **`Assets/Editor/SarcophagusASetup.cs`** — One-shot Editor utility (`Tools > Setup SarcophagusA`) that creates `ResourcesStatic/Prefabs/SarcophagusA.prefab` from the FBX mesh + material via `PrefabUtility.SaveAsPrefabAsset`. **User must run once after Unity reimports**, then delete the script.
+
+### Why
+
+The chamber-completion-reveal mechanic wants the sarcophagus to be the centerpiece of each excavated chamber. Existing in-scene sarcophagi were temp/placeholder; this is the first proper bespoke asset for the archaeology theme. Slot-able in `Hotel1.unity` chambers via the prefab.
+
+The user explicitly chose: name `SarcophagusA` (matches `BedA`, `CashA` variant naming), location `ResourcesStatic/Models/` (flat, like other props), per-asset 4-pixel mini-atlas (consistent with character pattern but smaller), and a Prefab in `ResourcesStatic/Prefabs/` for designer placement.
+
+### Pipeline differences from character workflow
+
+1. **No PlayerA armature import.** Static asset — armature is irrelevant.
+2. **No AimNode delete, no Z-up vs Y-up alignment, no envelope rescale, no auto-weight, no rigid-region cleanup, no mirror-pair averaging, no bind-pose asymmetry verification.** All of these only matter for skinned characters.
+3. **Pivot at floor center** (X=0 centerline, Z=0 at mesh base). For characters, the pivot is also at floor center but the mesh fills Z=[0, 2.099]; here Z=[0, 1.200].
+4. **`animationType: 0`** in the FBX .meta (None / Static), not `2` (Generic) as for characters. Skips Unity's Avatar/Animator setup entirely.
+5. **Preflight check is shorter** — just islands, boundary edges, symmetry, dimensions. No bone count / bone names / unweighted check.
+6. **Output is a Prefab**, not a `PlayerConfig` ScriptableObject. The `PrefabUtility.SaveAsPrefabAsset` path needs a temp GameObject in the scene with `MeshFilter + MeshRenderer` then `DestroyImmediate` after saving.
+
+### Pipeline notes (gotchas hit and resolved)
+
+1. **Hunyuan3D "No data received" error confirmed AGAIN.** Same as the Adventurer/Adventuress runs — API errored but `geometry_0` was already imported. Confirmed by user before retry. Did not retry.
+2. **`bpy.ops.transform_apply(rotation=True)` silently failed** even though the operator returned success. After `gen.rotation_euler = (math.pi/2, 0, 0)` and `transform_apply(rotation=True)`, `gen.dimensions` still showed the un-rotated values, AND vertex coordinates were unchanged. Workaround: bypass the operator entirely and call `mesh.transform(matrix)` directly with a rotation matrix from `mathutils.Matrix.Rotation`. This worked first try. **Add to pipeline notes.** Likely a Blender 5.x context-poll issue similar to the FBX import bug, but specifically for transform_apply.
+3. **Hunyuan output came in lying-down orientation** (head at +Y, lid at +Z, length 2.0m on Y) rather than standing. Same Z-up convention as character output but the model itself was laid flat. Solution: rotate +90° around X via `mesh.transform`, then translate so z_min=0, then uniform scale to Z=1.2m. Three direct mesh transforms instead of operator-based.
+4. **Position-based UV regions are imprecise for fine details** like the alternating gold/blue stripes on a pharaoh nemes headdress. Tried modulo-X stripe pattern (works approximately but noisy at the head edges). Eyebrows/beard-line details require sub-cm precision that can't be guessed from face position alone. Acceptable for a chamber-decoration asset viewed at top-down camera, but for hero-scale assets we'd need actual UV unwrapping.
+5. **No PlayerA import means no leftover-Adventuress cleanup pain.** When swapping characters across tasks, leftover armature + helper objects pile up. Static asset = cleaner scene state, simpler Blender prep.
+
+### Final mesh state
+
+```
+3587 verts, 6902 faces, 1 mesh island, 0 boundary edges
+Mesh symmetry: max mirror dist 0.0000mm
+Standing dimensions (Z up): 1.200m tall, 0.474m wide, 0.582m thick
+After designer rotation 90° around X in Unity: 1.200m long, 0.474m wide, 0.582m tall
+4-color atlas distribution: 5997 GOLD / 389 DARK_BLUE / 286 LIGHT_BLUE / 230 OUTLINE
+```
+
+### Open items
+
+- **User must run `Tools > Setup SarcophagusA`** in Unity once the new assets are reimported. Creates `ResourcesStatic/Prefabs/SarcophagusA.prefab`. **After running, delete `Assets/Editor/SarcophagusASetup.cs`.**
+- **Material approximation, not exact stripes.** The actual reference image has alternating gold/blue vertical stripes on the nemes headdress; my position-based modulo approximation gets roughly that pattern but at higher precision than the carving warrants for top-down camera. Acceptable for now; revisit if reviewing in close-up shots.
+- **Prefab pivot is at world origin** (mesh's Z=0 = floor). Designer drops at floor level, then rotates -90° around X in scene to lay flat (head ends up pointing along world X or Y depending on chamber orientation). If designer wants a "lying flat" prefab variant, that's a future addition.
+- **Scale variants** — chamber upgrades may want bigger sarcophagi (e.g. for the chamber-completion reveal moment). Future variants `SarcophagusB.fbx`, `SarcophagusC.fbx` would copy this pipeline with different reference images.
+
+---
+
 ## 2026-04-25 — PlayerAdventurer (Player6): male Indiana-Jones-style character via Hunyuan3D + full pipeline
 
 **Summary.** Created a new male Indiana-Jones-archetype character (Player6, internal name "Adventurer") from a reference image using Hunyuan3D, then processed through the full 3D pipeline: decimation, axis alignment, X=0 mirror symmetrize, 9-region atlas + UV assignment, rigging with rigid-region weight cleanup, symmetric weight averaging via mirror-pair, preflight pass, FBX export, Unity asset wiring. PlayerExplorer (also Player6) had been reverted in commit `da1a322`, so the Player6 slot was free; we reused it. Setup of the Unity-side PlayerConfig + GameConfig registration is gated on the user running an Editor menu item once.

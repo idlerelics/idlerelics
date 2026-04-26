@@ -36,7 +36,10 @@ namespace Game.Level.Player
         /// </summary>
         protected override void OnModelChanged(PlayerModel model)
         {
-            _body.sharedMesh = model.BodyMesh;
+            // For per-character prefabs (Mixamo), the prefab already carries its own
+            // mesh and material; PlayerConfig.Body is null and we leave the SMR untouched.
+            if (model.BodyMesh != null)
+                _body.sharedMesh = model.BodyMesh;
             if (model.BodyMaterial != null)
                 _body.sharedMaterial = model.BodyMaterial;
         }

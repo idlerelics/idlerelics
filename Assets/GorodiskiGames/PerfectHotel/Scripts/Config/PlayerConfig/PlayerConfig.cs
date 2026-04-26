@@ -27,7 +27,8 @@ namespace Game.Config
         Player3 = 3,
         Player4 = 4,
         Player5 = 5,
-        Player6 = 6
+        Player6 = 6,
+        Player7 = 7
     }
 
     /// <summary>
@@ -46,8 +47,9 @@ namespace Game.Config
         public UnitSexType Sex;            // Male or Female (affects model/animations)
         public string LabelKey;            // Localization key for the character's name
         public Sprite Icon;                // Character portrait for the UI
-        public Mesh Body;                  // 3D mesh for the character model
-        public Material BodyMaterial;      // Optional per-character material override (null = keep prefab default)
+        public Mesh Body;                  // Legacy: 3D mesh for shared-rig characters (PlayerA skeleton). Ignored if Prefab is set.
+        public Material BodyMaterial;      // Legacy: per-character material override for shared-rig characters. Ignored if Prefab is set.
+        public GameObject Prefab;          // Per-character prefab (own armature/animator/avatar). When set, the legacy Body/BodyMaterial path is bypassed and this prefab is instantiated at runtime instead.
         public AttributeInfo[] Infos;      // Array of attribute bonuses this character provides
         public UnlockConditionConfig UnlockConditionConfig; // How to unlock this character
 

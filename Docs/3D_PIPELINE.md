@@ -164,7 +164,47 @@ Save a `_pre_*.blend` checkpoint before EVERY destructive edit. Naming: `<basena
 
 ### What doesn't work
 - JPEG or any image with a solid background = garbage output (flat plane with texture on top).
-- Hyper3D text-to-3D: expensive, requires separate Blender panel activation (`create_rodin_job`), and wasn't needed once Hunyuan worked.
+- ~~Hyper3D text-to-3D: expensive, requires separate Blender panel activation (`create_rodin_job`), and wasn't needed once Hunyuan worked.~~ Superseded — see Section 1b.
+
+---
+
+## 1b. AI Model Generation (Hyper3D Rodin) — alternate path with baked textures
+
+### When to use this path vs Hunyuan3D
+- **Hunyuan3D (Section 1)**: produces **untextured** mesh, needs a hand-built 9-pixel atlas + per-zone UV assignment. Right for stylized flat-color characters (Archaeologist, Adventurer).
+- **Hyper3D Rodin (this section)**: produces **textured** mesh with full UV unwrap and a 512×512 baked texture. Right for photo-textured characters where the reference has color richness you want to preserve (Adventuress and future Rodin characters).
+
+### Key gotcha: use the Rodin Blender plugin DIRECTLY, not the MCP tool
+- `mcp__blender__generate_hyper3d_model_via_images` consistently fails with `Error: Input buffer contains unsupported image format` (Sharp library, server-side). Tried original PNG, Blender re-saved PNG, hand-written stdlib PNG, square 1024×1024, portrait 1024×1536 — all rejected. The BlenderMCP addon's transmission of the image bytes is somehow not what Sharp expects on the server side. **Workaround: install the official Rodin Blender plugin (Hyper3D's own addon) and run the generation from inside Blender's UI.** Then proceed with the rest of this section in MCP/Python as usual.
+- `get_hyper3d_status` via MCP is still useful for confirming subscription mode (MAIN_SITE vs FAL_AI).
+
+### Texture handling
+- Rodin's output texture is **packed** into the .blend AND lives in a temp folder (`%LOCALAPPDATA%\Temp\<uuid>_base_basic_shaded\<hash>_shaded.png`). Save it to a permanent path next to the .blend before doing any pipeline work, so it survives temp-folder cleanup:
+  ```python
+  img.file_format = 'PNG'
+  img.filepath_raw = "C:/.../PlayerCharacter_textures/PlayerCharacterTexture.png"
+  img.save()
+  ```
+- **Texture import settings are different from atlas characters.** Use `maxTextureSize: 512`, `enableMipMap: 1`, `filterMode: 1` (Bilinear), `textureCompression: 1`. The atlas-character settings (32px, point filter, no mipmaps) would destroy the photo-textured look.
+- **No 9-pixel atlas.** Skip Section 3 entirely. The Rodin texture replaces it.
+- **Keep Rodin's UV map** (`'st'` is the layer name). Do not re-UV.
+
+### Decimation gotchas (Rodin output)
+- Rodin output is ~17K faces (lighter than Hunyuan's 563K). Decimate Collapse modifier may need 2 passes — the modifier hits topology limits and produces ~2x the requested face count on the first try. Run again at `target / current_faces` ratio to converge.
+- Decimate Collapse **breaks mesh symmetry** even when the input is perfectly symmetric. After decimating a symmetric body, re-run `mesh.symmetrize(POSITIVE_X)` to restore symmetry.
+
+### Asymmetric hair (or other intentionally-asymmetric features)
+The pipeline's "Perfect mirror across X=0" rule applies to the body — auto-weights and mirror-pair averaging require it. Hair (or any feature locked to a single rigid bone like Head) can be asymmetric. Process:
+
+1. **Classify hair vs body via per-vertex texture-color sampling.** For each vertex, average the UVs across all faces touching it, sample the texture, classify HAIR if HSV-hue ∈ [30°,60°] AND saturation ≥ 0.30 AND value ≥ 0.55 AND Z ≥ 1.45 (the Z filter prevents jacket-buckle / belt-trim false positives below the head). Verify by setting vertex colors and viewport-screenshotting before you destructively separate.
+2. **Separate hair into a child object** via `bpy.ops.mesh.separate(type='SELECTED')`.
+3. **Symmetrize the body only.**
+4. **Decimate body and hair to mobile budget separately.** Re-symmetrize body after decimating (Collapse breaks symmetry).
+5. **Re-join hair into body.** Apply progressive merge-by-distance in the head zone (Z≥1.40), starting at 5mm and working up to 30mm. **Do not exceed 30mm** — at 50mm, bangs verts get dragged down onto the eye area, displacing hair-color UVs onto skin texture (visible "tear streaks"). 30mm leaves ~80 interior boundary edges; accepted as ship-acceptable for the hair-shell hybrid (the typical idle-game camera angle doesn't expose them).
+6. **Preflight: relax mesh-symmetry assertion to body-only (Z<1.30).** Hair zone is intentionally asymmetric and locked 100% to the Head bone (single rigid bone, no left/right pair to mirror against, so weights don't need to be symmetric there).
+
+### Reference: PlayerAdventuress (full pipeline run)
+See DEVLOG `2026-04-26` entry for the complete iteration log including all gotchas and per-step face counts.
 
 ---
 
@@ -428,6 +468,8 @@ Existing characters: PlayerA.fbx, PlayerB.fbx, PlayerBomber.fbx, PlayerLora.fbx,
 - **`img.pixels = list(...)` and `img.pixels.foreach_set(...)` silently produce all-zero textures** in some Blender versions (hit on 2026-04-25 with PlayerAdventurer). The image looks correct in the data block (`source: GENERATED`, right size) but every pixel is `(0,0,0,1)` after the assignment. Workaround: write the PNG bytes directly using stdlib `struct + zlib` (a 105-byte minimal RGBA PNG works fine) and reload via `bpy.data.images.load(path)`. Always verify pixel values via `list(img.pixels[:36])` immediately after creating an atlas.
 - **`bpy.ops.wm.read_homefile()` can disconnect the MCP server.** When you need to reset the scene, manually delete all objects via `bpy.data.objects.remove()` instead. If you must reload, ask the user to reconnect the BlenderMCP addon afterward.
 - **Mesh and PlayerA armature can land in different axis orientations** (Z-up vs Y-up) depending on import path. Hunyuan3D output is Z-up; PlayerA's FBX armature comes in Y-up. Symptom: ARMATURE_AUTO fails with "Bone Heat Weighting: failed to find solution for one or more bones" with all verts unweighted. Fix: rotate the armature 90° around X and apply, before parenting. **Also**: applying a uniform scale to an armature object can collapse the internal cm→m unit baking; if Hips bone shows up at y=63 instead of y=0.63 after the rotation, the armature also needs a 0.01x rescale-and-apply.
+- **`bpy.ops.object.transform_apply(rotation=True)` can silently fail** in Blender 5.x even though the operator returns successfully. Symptom: after setting `gen.rotation_euler = (math.pi/2, 0, 0)` and calling `transform_apply(rotation=True)`, `gen.dimensions` still reports un-rotated values *and* the actual vertex coordinates haven't moved. Workaround: skip the operator entirely and apply the rotation directly to vertex data via `mesh.transform(mathutils.Matrix.Rotation(angle, 4, 'X'))`. Same approach works for translate (`Matrix.Translation`) and uniform scale (`Matrix.Scale`). The direct `mesh.transform` path worked first try when the operator silently no-op'd. Hit on 2026-04-25 during the SarcophagusA pipeline.
+- **Hunyuan3D "No data received" error often means the model was created anyway.** Confirmed across PlayerAdventurer, PlayerAdventuress, and SarcophagusA runs (2026-04-25): the API returned this error on every call but `get_scene_info` immediately afterward showed `geometry_0` had been imported. **Never auto-retry the generation tool on this error** — always check the scene first; otherwise you get duplicate `geometry_0` and `geometry_0.001` imports. When working with the user, ask them to verify the model arrived in Blender before retrying.
 
 ---
 
@@ -438,3 +480,5 @@ Existing characters: PlayerA.fbx, PlayerB.fbx, PlayerBomber.fbx, PlayerLora.fbx,
 | PlayerArchaeologist (original Cowork rig) | `Desktop/idle Relic/PlayerArchaeologist.blend` (now rewritten) | ~7,320 | 20 | Idle, Walk | Superseded by the round-5 cleanup below |
 | **PlayerArchaeologist (final, shipped)** | `ResourcesStatic/Models/Units/PlayerArchaeologist.fbx` | **5,751** | **22** | None (uses UnitAC.controller) | **Done.** Symmetric mesh, single welded island, 0 boundary edges, 22-bone skeleton matching PlayerA exactly, hidden inner skin body removed, per-character material override (`PlayerArchaeologistMaterial.mat` + `PlayerArchaeologistAtlas.png`). Took 5 rounds of iteration; full saga in `Docs/DEVLOG.md`. One known cosmetic artifact (jacket-colored patch visible only from back-of-character below-the-hand camera angle, accepted ship-acceptable). |
 | **PlayerAdventurer (Player6, shipped)** | `ResourcesStatic/Models/Units/PlayerAdventurer.fbx` | **5,876** | **22** | None (uses UnitAC.controller) | **Done (pending Unity verification).** Indiana-Jones-style male character. 3054 verts, perfect X=0 symmetry (max mirror dist 0mm), 0 boundary edges, 1 mesh island, 0 unweighted verts, bind pose asymmetry preserved. Per-character material (`PlayerAdventurerMaterial.mat` + `PlayerAdventurerAtlas.png`). Pipeline ran cleaner than Archaeologist — only 1 round of iteration, no hidden-body cleanup needed. Source: `Desktop/IdleRelic/PlayerAdventurer_*.blend`. Setup of Unity-side PlayerConfig + GameConfig registration via `Tools > Setup PlayerAdventurer` editor menu (one-shot). |
+| **PlayerAdventuress (Player7, shipped)** | `ResourcesStatic/Models/Units/PlayerAdventuress.fbx` | **3,902** | **22** | None (uses UnitAC.controller) | **Done (pending Unity verification).** Female adventurer — first character via the **Hyper3D Rodin** path (not Hunyuan3D). 1958 verts, **80 boundary edges accepted** (interior holes from the symmetric-body + asymmetric-hair-shell hybrid). Body region (Z<1.30) perfectly mirror-symmetric; **hair intentionally asymmetric** — high side-swept ponytail. Uses Rodin's baked **512×512 photo texture** (not a 9-pixel atlas) — different material/import settings (`PlayerAdventuressMaterial.mat` + `PlayerAdventuressTexture.png`, mipmaps on, bilinear filter, max 512). Key new pipeline pieces: Rodin Blender plugin used directly (MCP path failed), per-vertex texture-color sampling to classify hair vs body, separate-then-symmetrize-then-rejoin sequence for asymmetric hair. Source: `Desktop/IdleRelic/PlayerAdventuress_*.blend`. Setup of Unity-side PlayerConfig + GameConfig registration via `Tools > Setup PlayerAdventuress` editor menu (one-shot). |
+| **SarcophagusA (static, shipped)** | `ResourcesStatic/Models/SarcophagusA.fbx` | **6,902** | n/a (static) | None | **Done (pending Unity verification).** First static asset via the pipeline. Egyptian pharaoh sarcophagus, authored standing 1.2m tall on Z axis. 3587 verts, X=0 symmetric, 0 boundary edges, 1 island. 4-pixel atlas (Gold/DarkBlue/LightBlue/Outline) instead of the 9-pixel character pattern. Output is a Prefab (`ResourcesStatic/Prefabs/SarcophagusA.prefab`) created via `Tools > Setup SarcophagusA` editor menu. Designer rotates -90° X in scene to lay it flat. Material: `SarcophagusAMaterial.mat` + `SarcophagusAAtlas.png`. |

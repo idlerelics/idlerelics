@@ -73,10 +73,10 @@ namespace Game.States
             if (!_config.PlayersMap.ContainsKey(player))
                 player = 0; // Fall back to default player if the saved one doesn't exist
 
-            // TODO: REMOVE — temporary test override for PlayerAdventurer (player index 6).
+            // TODO: REMOVE — temporary test override for PlayerAdventuress (player index 7).
             // Forces the new character to spawn regardless of saved progress. Delete this
             // line once visual verification is done so normal player selection resumes.
-            if (_config.PlayersMap.ContainsKey(6)) player = 6;
+            if (_config.PlayersMap.ContainsKey(7)) player = 7;
 
             // Register default player interaction types (must be before PlayerController
             // creation because it copies _context into a sub-context)
@@ -91,7 +91,27 @@ namespace Game.States
             var playerConfig = _config.PlayersMap[player];
             var model = new PlayerModel(playerConfig, _config, _gameManager);
 
-            _gameManager.Player = new PlayerController(_gameView.PlayerView, model, _context);
+            // Resolve which PlayerView to drive. Two paths:
+            //  - Per-character prefab (new): instantiate the config's Prefab — it carries its own
+            //    armature/animator/avatar. The scene's legacy PlayerView is hidden and unused.
+            //  - Legacy mesh swap: use the scene-placed PlayerView and let PlayerModel's BodyMesh
+            //    swap onto its shared SkinnedMeshRenderer (PlayerA-rigged characters / NPCs).
+            PlayerView playerView;
+            if (playerConfig.Prefab != null)
+            {
+                var legacyView = _gameView.PlayerView;
+                var spawnPos = legacyView != null ? legacyView.transform.position : Vector3.zero;
+                var spawnRot = legacyView != null ? legacyView.transform.rotation : Quaternion.identity;
+                var instance = UnityEngine.Object.Instantiate(playerConfig.Prefab, spawnPos, spawnRot);
+                playerView = instance.GetComponent<PlayerView>();
+                if (legacyView != null) legacyView.gameObject.SetActive(false);
+            }
+            else
+            {
+                playerView = _gameView.PlayerView;
+            }
+
+            _gameManager.Player = new PlayerController(playerView, model, _context);
             // Set the player's initial rotation (facing the camera) and position (center)
             // Vector3 holds three floats: (x, y, z)
             _gameManager.Player.View.Euler = new Vector3(0f, 180f, 0f);
