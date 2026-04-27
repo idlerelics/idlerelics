@@ -11,6 +11,31 @@ An idle management game where you play as a lead archaeologist exploring ancient
 - **Target Platform:** Mobile (iOS & Android), portrait orientation
 - **Art Style:** Cartoony & colorful 3D (Supercell-quality), warm golden lighting, chunky stylized proportions
 
+## Tooling Available (MCP Servers)
+
+This project has two MCP servers configured. Both expose tools prefixed `mcp__<server>__*`.
+
+### Unity MCP (`mcp__UnityMCP__*`)
+Live connection to the running Unity Editor. Use it for any task that touches the project's Unity state — scenes, prefabs, scripts, components, assets, play mode, tests, console.
+
+- **Read state via resources first:** `mcpforunity://instances` (active Unity sessions), `mcpforunity://custom-tools` (per-project tools), `editor_state`, `project_info`, `project_tags`, etc.
+- **Mutate state via tools:** `manage_scene`, `manage_gameobject`, `manage_prefabs`, `manage_components`, `manage_asset`, `manage_script` / `script_apply_edits` / `apply_text_edits`, `manage_editor` (play mode, tags/layers), `run_tests`, `read_console`, `execute_menu_item`, `execute_code`, `unity_reflect`, `unity_docs`, etc.
+- **After every script create/edit, call `read_console`** to check for compilation errors before assuming a new component/type is usable. Poll `editor_state.isCompiling` if needed.
+- **Path convention:** all paths are relative to `Assets/`; use forward slashes.
+- **Multiple Unity instances:** if more than one is connected, call `set_active_instance` once per session, or pass `unity_instance` per call.
+- The server's full instructions are loaded automatically into every Claude session — no need to redocument them here.
+
+### Blender MCP (`mcp__blender__*`)
+Live connection to a running Blender instance. Used for the 3D character pipeline (mesh generation, decimation, rigging, FBX export).
+
+- **The addon does NOT auto-start.** Before the first MCP call of any new-scene Blender task, pause and ask Fabian to enable it. (See auto-memory: `feedback_blender_mcp_addon.md`.)
+- **Generation backends:**
+  - **Hunyuan3D** (`generate_hunyuan3d_model`, `poll_hunyuan_job_status`, `import_generated_asset_hunyuan`) — works via MCP. Default for image-to-mesh.
+  - **Hyper3D Rodin** — `mcp__blender__generate_hyper3d_model_via_images` is **broken** (Sharp library error on Hyper3D's API server). Have Fabian generate from the Rodin Blender plugin UI instead. (See auto-memory: `feedback_rodin_via_blender_plugin.md`.)
+- **Asset libraries:** `search_polyhaven_assets` / `download_polyhaven_asset`, `search_sketchfab_models` / `download_sketchfab_model`.
+- **Direct Blender control:** `execute_blender_code` (arbitrary Python in Blender's context), `get_scene_info`, `get_object_info`, `get_viewport_screenshot`, `set_texture`.
+- **Always read `Docs/3D_PIPELINE.md` before any Blender MCP / 3D modeling task** (Working Rule #2). It has the full cookbook: decimation targets, material strategy, rig migration, FBX export settings, gotchas. Update its Asset Log table when creating or modifying any 3D asset.
+
 ## Theme Mapping (Hotel → Archaeology)
 
 When working on this codebase, always think in archaeology terms. The code still uses hotel naming but the GAME is archaeology:
@@ -154,7 +179,9 @@ These are non-negotiable process rules for any Claude session working in this re
 
 **1. Update `Docs/DEVLOG.md` as part of the work, not as an optional postscript.** At the end of any non-trivial code change, design decision, architectural investigation, or bug fix, append a dated entry to `Docs/DEVLOG.md` *before* considering the task complete. Newest entries go at the top (under the file header, above prior entries). Each entry should contain: a `## YYYY-MM-DD — short title` heading, a one-line **Summary**, a **What changed** section (file-by-file for code changes), a **Why** section for non-obvious decisions, and **Open items** for things deliberately left unfinished. This log is the canonical cross-session memory for the project — Fabian and future Claude sessions both read it at the start of new work. Treat missing devlog entries as incomplete work.
 
-**2. Open `.prefab` files directly when investigating scene entities — don't trust class-name grep.** In this project, prefab files often reference a different MonoBehaviour than their folder/file name suggests (e.g. the Hotel 2 "vending machines" are actually `ToiletView` prefabs, not `SodaView`). For any question of the form *"is feature X implemented?"* or *"how is system Y wired up?"*, the investigation order is: (1) find the relevant prefab(s) under `Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/Levels/HotelN/`, (2) grep inside those prefab files for `m_Script` lines, (3) cross-reference the GUIDs against `.cs.meta` files to find the *actual* class driving the entity, (4) only then investigate that class. Folder names, file names, and enum values are not evidence that a feature exists — they may be aspirational or orphaned.
+**2. Read `Docs/3D_PIPELINE.md` at the start of any 3D modeling, Blender MCP, or asset creation task.** This file contains the full pipeline cookbook — Hunyuan3D generation workflow, decimation targets, material assignment strategy, rigging/animation notes, FBX export settings, and Blender MCP gotchas. It also has an Asset Log table at the bottom; update it when creating or modifying any 3D asset.
+
+**3. Open `.prefab` files directly when investigating scene entities — don't trust class-name grep.** In this project, prefab files often reference a different MonoBehaviour than their folder/file name suggests (e.g. the Hotel 2 "vending machines" are actually `ToiletView` prefabs, not `SodaView`). For any question of the form *"is feature X implemented?"* or *"how is system Y wired up?"*, the investigation order is: (1) find the relevant prefab(s) under `Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/Levels/HotelN/`, (2) grep inside those prefab files for `m_Script` lines, (3) cross-reference the GUIDs against `.cs.meta` files to find the *actual* class driving the entity, (4) only then investigate that class. Folder names, file names, and enum values are not evidence that a feature exists — they may be aspirational or orphaned.
 
 ## Architecture
 
