@@ -1,0 +1,1273 @@
+fileFormatVersion: 2
+guid: df20e119c97ee414bb4461934e4982aa
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 196
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Adventuress_Walk_S_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1372
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 940edeaaec5d94a40800000000000000
+      internalID: 5353044715714240585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_S_1
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 1372
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b09b829fa19722a30800000000000000
+      internalID: 4189043760164288779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_S_2
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 1372
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d64fd1234b9c7a70800000000000000
+      internalID: 8826100082372724440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_S_3
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 1372
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 559f61eb792986c60800000000000000
+      internalID: 7811654734101018965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_S_4
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1372
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ae16caf8a3d13a40800000000000000
+      internalID: 5346286955380743849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_S_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 1372
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c836fa2032036ca60800000000000000
+      internalID: 7693889940336108428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SW_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1176
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3acf3932d51d2600800000000000000
+      internalID: 445035930827344444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SW_1
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 1176
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44b3fcd25c80bc7f0800000000000000
+      internalID: -591369283098952892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SW_2
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 1176
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40d8b4a60565e01c0800000000000000
+      internalID: -4535592871334802172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SW_3
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 1176
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63a88acc9ea6f5c40800000000000000
+      internalID: 5503234822063557174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SW_4
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 1176
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0f05fe28b052eee0800000000000000
+      internalID: -1233334595954077937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SW_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 1176
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b245f52c86f6a2680800000000000000
+      internalID: -8779082027877051349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_W_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 980
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95b375dcb003c9570800000000000000
+      internalID: 8474701426052250457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_W_1
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 980
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a26b4abad4bfad780800000000000000
+      internalID: -8657331022655605206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_W_2
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 980
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e554b493b0f38ef0800000000000000
+      internalID: -106977312042101279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_W_3
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 980
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a32115158a5b4fd20800000000000000
+      internalID: 3311471360547557946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_W_4
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 980
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5104f6874a7d7de70800000000000000
+      internalID: 9140011070166876181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_W_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 980
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc44398305c77d6c0800000000000000
+      internalID: -4118686650218625845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NW_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 784
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 292000876a63381f0800000000000000
+      internalID: -1043930600014085486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NW_1
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 784
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 172f7a140fe1ed730800000000000000
+      internalID: 4025689134158312049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NW_2
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 784
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b092eaec4d2666340800000000000000
+      internalID: 4856677914305767691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NW_3
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 784
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82fd7d1300faeb020800000000000000
+      internalID: 2359515670159810344
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NW_4
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 784
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b678b8a2d55e6c30800000000000000
+      internalID: 4354512252976002742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NW_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 784
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62c8f60d547fd0090800000000000000
+      internalID: -8066519478328914906
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_N_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 588
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be13fd4712737e4f0800000000000000
+      internalID: -799609792000740885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_N_1
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 588
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dfc582d883a6b0f0800000000000000
+      internalID: -1101513250802642988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_N_2
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 588
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f76465e69d8187e80800000000000000
+      internalID: -8180761400980388225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_N_3
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 588
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c792c5c6a8e1cbcb0800000000000000
+      internalID: -4846965519085196932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_N_4
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 588
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfaeccb7d85a165b0800000000000000
+      internalID: -5376834453017662724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_N_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 588
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d70bbbf36b8e12eb0800000000000000
+      internalID: -4746256662820835203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NE_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 392
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b33e4dbe3ee9ced0800000000000000
+      internalID: -2393119773739306055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NE_1
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 392
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03a7f49c75fc291c0800000000000000
+      internalID: -4498305101843170768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NE_2
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 392
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9636894b9740c2480800000000000000
+      internalID: -8922751840960355479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NE_3
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 392
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ddedcf38cfb8ccdb0800000000000000
+      internalID: -4770283988629791011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NE_4
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 392
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 039e3a31ccac02f00800000000000000
+      internalID: 1090094087675308336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_NE_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 392
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d0a7ec49f1a2a4b0800000000000000
+      internalID: -5430600108546219822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_E_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 196
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cefca6b293bfbb5c0800000000000000
+      internalID: -4198486004632727572
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_E_1
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 196
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f534e98c5945ca80800000000000000
+      internalID: -8447264864264243723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_E_2
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 196
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3bed7ffcb90948d80800000000000000
+      internalID: -8249309618552447309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_E_3
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 196
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a42193d438fc6c710800000000000000
+      internalID: 1713284871104303690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_E_4
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 196
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f6f7ba8dfb46b270800000000000000
+      internalID: 8265877718411245297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_E_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 196
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7baf5918f612f3c0800000000000000
+      internalID: -4327371037116224644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SE_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70244ffd48774dd60800000000000000
+      internalID: 7914081857773519367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SE_1
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 0
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4afba639457bf4e0800000000000000
+      internalID: -1946833456597304754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SE_2
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 0
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa5ba233e2760f0d0800000000000000
+      internalID: -3391097071285389910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SE_3
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 0
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5ec09947c7552ea0800000000000000
+      internalID: -5898211623527461283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SE_4
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 0
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 457bd1dc293367390800000000000000
+      internalID: -7821006997282769068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Adventuress_Walk_SE_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 0
+        width: 197
+        height: 196
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af272b7e1c43651a0800000000000000
+      internalID: -6821206578185473286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Adventuress_Walk_E_0: -4198486004632727572
+      Adventuress_Walk_E_1: -8447264864264243723
+      Adventuress_Walk_E_2: -8249309618552447309
+      Adventuress_Walk_E_3: 1713284871104303690
+      Adventuress_Walk_E_4: 8265877718411245297
+      Adventuress_Walk_E_5: -4327371037116224644
+      Adventuress_Walk_NE_0: -2393119773739306055
+      Adventuress_Walk_NE_1: -4498305101843170768
+      Adventuress_Walk_NE_2: -8922751840960355479
+      Adventuress_Walk_NE_3: -4770283988629791011
+      Adventuress_Walk_NE_4: 1090094087675308336
+      Adventuress_Walk_NE_5: -5430600108546219822
+      Adventuress_Walk_NW_0: -1043930600014085486
+      Adventuress_Walk_NW_1: 4025689134158312049
+      Adventuress_Walk_NW_2: 4856677914305767691
+      Adventuress_Walk_NW_3: 2359515670159810344
+      Adventuress_Walk_NW_4: 4354512252976002742
+      Adventuress_Walk_NW_5: -8066519478328914906
+      Adventuress_Walk_N_0: -799609792000740885
+      Adventuress_Walk_N_1: -1101513250802642988
+      Adventuress_Walk_N_2: -8180761400980388225
+      Adventuress_Walk_N_3: -4846965519085196932
+      Adventuress_Walk_N_4: -5376834453017662724
+      Adventuress_Walk_N_5: -4746256662820835203
+      Adventuress_Walk_SE_0: 7914081857773519367
+      Adventuress_Walk_SE_1: -1946833456597304754
+      Adventuress_Walk_SE_2: -3391097071285389910
+      Adventuress_Walk_SE_3: -5898211623527461283
+      Adventuress_Walk_SE_4: -7821006997282769068
+      Adventuress_Walk_SE_5: -6821206578185473286
+      Adventuress_Walk_SW_0: 445035930827344444
+      Adventuress_Walk_SW_1: -591369283098952892
+      Adventuress_Walk_SW_2: -4535592871334802172
+      Adventuress_Walk_SW_3: 5503234822063557174
+      Adventuress_Walk_SW_4: -1233334595954077937
+      Adventuress_Walk_SW_5: -8779082027877051349
+      Adventuress_Walk_S_0: 5353044715714240585
+      Adventuress_Walk_S_1: 4189043760164288779
+      Adventuress_Walk_S_2: 8826100082372724440
+      Adventuress_Walk_S_3: 7811654734101018965
+      Adventuress_Walk_S_4: 5346286955380743849
+      Adventuress_Walk_S_5: 7693889940336108428
+      Adventuress_Walk_W_0: 8474701426052250457
+      Adventuress_Walk_W_1: -8657331022655605206
+      Adventuress_Walk_W_2: -106977312042101279
+      Adventuress_Walk_W_3: 3311471360547557946
+      Adventuress_Walk_W_4: 9140011070166876181
+      Adventuress_Walk_W_5: -4118686650218625845
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

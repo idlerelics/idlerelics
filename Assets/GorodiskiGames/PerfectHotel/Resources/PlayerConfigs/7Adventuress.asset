@@ -18,7 +18,7 @@ MonoBehaviour:
   Icon: {fileID: 0}
   Body: {fileID: 0}
   BodyMaterial: {fileID: 0}
-  Prefab: {fileID: 8961440395884243786, guid: be130db592eb8bd42b9edd41d920249b, type: 3}
+  Prefab: {fileID: 4432597026146846632, guid: ba26c84aa9e8e6f40a50dedefbd3821d, type: 3}
   Infos:
   - Type: 0
     AddValue: 1

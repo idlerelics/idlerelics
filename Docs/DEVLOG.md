@@ -6,6 +6,72 @@ A running log of meaningful changes, decisions, and gotchas for Lost Chambers: I
 
 ---
 
+## 2026-05-31 — 2.5D branch: 2D sprite character pipeline (player only, prototype)
+
+**Summary.** Pivoted from 3D rigged player characters to hand-drawn 2D sprite characters in a 3D world ("2.5D"), on new branch `2.5D` (pushed to origin). End-to-end pipeline built and visually verified for one player: PNG sprite sheet → sliced sub-sprites → runtime SpriteCharacterView component (billboard + 8-direction resolve + frame cycle) → `Player_2D.prefab` variant. Visual smoke test confirms the sprite renders front-on toward the camera with correct pivot at the feet. Movement-driven direction cycling not yet verified at play-time.
+
+### What changed (code)
+
+- **New runtime component** [Assets/GorodiskiGames/PerfectHotel/Scripts/Level/Units/SpriteCharacterView.cs](Assets/GorodiskiGames/PerfectHotel/Scripts/Level/Units/SpriteCharacterView.cs)
+  - Y-only billboard (LateUpdate, `DefaultExecutionOrder=10000` so it wins over movement-driven rotation upstream).
+  - 8-direction index from camera-relative velocity (atan2 of velocity projected onto `cam.forward` / `cam.right` on the ground plane). Direction 0=S clockwise to 7=SE.
+  - Frame cycler at configurable FPS; freezes on `_idleFrameIndex` when speed below `_minMoveSpeed`.
+  - Velocity source priority: `NavMeshAgent.velocity` → `Rigidbody.linearVelocity` → transform-delta fallback.
+- **Two editor tools** under `Tools/IdleRelics/...`:
+  - [Assets/Editor/SliceAdventuressWalk.cs](Assets/Editor/SliceAdventuressWalk.cs) — programmatic slice of the walk sheet into 48 named sub-sprites (`Adventuress_Walk_{S|SW|W|NW|N|NE|E|SE}_{0..5}`), `BottomCenter` pivot, PPU = cell size, no compression, no mipmaps.
+  - [Assets/Editor/BuildPlayer2DPrefab.cs](Assets/Editor/BuildPlayer2DPrefab.cs) — clones `Player.prefab`, disables all `SkinnedMeshRenderer`s, adds a `Sprite` child (scale 2× to match original ~2m character height) with `SpriteRenderer` + `SpriteCharacterView`, wires 48 sprites into `_walkFrames` in row-major (direction-then-frame) order, saves as `Player_2D.prefab`.
+
+### What changed (assets)
+
+- **`Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Sprites/Characters/Player_Adventuress_Walk.png`** — 8-direction × 6-frame walk cycle sprite sheet. Final dimensions 1088×1445 px, sliced as **180×180** cells (with ~8 px right / ~5 px bottom padding ignored). The first sheet Fabian dropped in (181×181 nominal cells) had inconsistent character placement within cells from imperfect ChatGPT-generated layout; Fabian re-authored it manually to a more uniform grid. Re-slicing on iteration only needs the constants in `SliceAdventuressWalk.cs` updated.
+- **`Assets/GorodiskiGames/PerfectHotel/ResourcesStatic/Prefabs/Units/Player_2D.prefab`** — sprite variant of `Player.prefab`. Keeps every original component (NavMeshAgent, Rigidbody, BoxCollider, Animator, PlayerView) intact; the rig hierarchy is preserved (so PlayerView's `_body` reference doesn't NRE on `OnModelChanged`) but every `SkinnedMeshRenderer.enabled = false`. A new `Sprite` child sits at the prefab root with the `SpriteCharacterView` and a `SpriteRenderer` drawing the current frame.
+
+### Why
+
+- **Approach: full hand-drawn 2D sprites (option 3 of three).** Fabian considered (1) billboard the existing 3D mesh, (2) pre-render the 3D mesh to a sprite sheet, (3) hand-drawn 2D. Option 3 has the highest visual ceiling and matches the cartoony / Octopath-style direction he wants. Cost: needs more anim states later (idle, dig, carry, drink, eat, deposit, register) and per-NPC sheets.
+- **Renderer verification.** URP is on `UniversalRenderer` (Forward, 3D-capable) — confirmed in `Assets/Settings/UniversalRP.asset` (`m_RendererType: 1`, GUID `424799608f7334c24bf367e4bbfa7f9a`). The 2D Renderer asset exists in `Assets/Settings/Renderer2D.asset` but is NOT the active one, so 3D environment + sprite characters coexist without issue.
+- **Billboard direction (gotcha).** SpriteRenderer's visible face points along `+Z` in local space. First implementation used `LookRotation(camForward)` which made the sprite's front face the same direction the camera looks → camera saw the *back*. Fix: use `-cam.forward` for `LookRotation`. Yaw-only constraint (zero out Y component) gives the upright-but-camera-facing look needed for a perspective 3D camera at a tilt.
+- **DefaultExecutionOrder=10000.** The existing rig rotates `Transform` child to face movement direction (probably in `UnitStaffView` / a Mover). Putting the billboard at execution order 10000 ensures it runs last in LateUpdate and wins the rotation race — but since the SpriteRenderer is on a *sibling* of the rig, this is belt-and-suspenders only.
+- **Prefab kept, not stripped.** Keeping the disabled rig hierarchy lets `PlayerView.OnModelChanged` continue to set `sharedMesh`/`sharedMaterial` on the disabled SMR without NRE. Cheaper than refactoring `PlayerView` for the prototype.
+
+### Open items
+
+- **Movement-driven direction cycling not yet play-tested.** The component is wired and reads NavMeshAgent.velocity → Rigidbody.linearVelocity → transform-delta as fallback, but no scene currently *drives* the test instance — `Player_2D_Test` sits at origin static. Easiest next step is either (a) attach `Player_2D.prefab` to `7Adventuress.asset`'s `Prefab` field and force Player7 selection so the joystick drives it, or (b) write a small `TestSpriteOrbit` driver to walk a circle around the origin.
+- **8-direction mapping might need a flip.** The atan2 formula assumes `cam.right` is rotated +90° clockwise from `cam.forward` projected onto the ground plane. If the on-screen result has L/R swapped, change `Vector3 camRight = new Vector3(camForward.z, 0f, -camForward.x)` to `Vector3 camRight = new Vector3(-camForward.z, 0f, camForward.x)` in `SpriteCharacterView.ResolveDirectionIndex`.
+- **Only the player walk cycle exists.** Need same sheet treatment for: idle, dig/work, carry, drink, eat, deposit, register-at-desk — and the equivalent for each NPC type (cleaner / supply runner, loader / artifact transporter, expedition worker / "guest", reception worker).
+- **Shadow.** Sprite drops no real shadow. Add a fake blob-shadow decal under each unit, or set the sprite material to a URP/Lit-Cutout variant if real shadows are wanted.
+- **NPC sheets still missing.** Fabian intends to switch player AND npcs to 2D — this branch only covers the player so far.
+- **`PlayerView._body` is still pointing at the SMR.** Per-character material overrides via `PlayerConfig.BodyMaterial` will silently apply to an invisible mesh on Player_2D variants. Probably fine for now; revisit if/when more 2D characters land.
+
+---
+
+## 2026-04-27 — PlayerAdventuress face symmetrize attempt — REVERTED (face destroyed)
+
+**Summary.** Tried to make the Adventuress face symmetric in `Desktop/IdleRelic/PlayerAdventuress_pre_rig.blend` while preserving the hand-authored asymmetric hair. Approach: classify hair vs body via per-vertex texture-color sampling (HSV hue 30–60°, sat ≥ 0.30, val ≥ 0.55, Z ≥ 1.45), separate hair into a child object, run `bpy.ops.mesh.symmetrize(direction='POSITIVE_X')` on the body+skull, clean up leftover hair-shell triangles, then rejoin hair with progressive merge_by_distance (5/15/30mm). Reported visually-symmetric face on screenshot.
+
+**Outcome:** Fabian reviewed the result and reported the face was destroyed. Reverted to the pre-edit backup.
+
+### What's now on disk
+
+- **`Desktop/IdleRelic/PlayerAdventuress_pre_rig.blend`** — restored from `_BAK_pre_face_symmetrize` (3757v / 7534f, original asymmetric face and hair, single mesh, no separation residue).
+- **`Desktop/IdleRelic/PlayerAdventuress_pre_rig_BAK_pre_face_symmetrize.blend`** — the backup that was used to restore. Kept on disk in case Fabian wants to inspect the pre-edit state independently.
+
+### Why the symmetrize destroyed the face (best-guess post-mortem, not reverified)
+
+Most plausible failure: the `mesh.symmetrize(POSITIVE_X)` was applied to the body *after* the hair was separated, but the body still contained ~380 hair-shell faces that sat on top of the face (boundary triangles where ≤1/3 verts classified as hair). Those got mirrored to the -X side, producing visible spike artifacts in front of the face which I then pruned via face-center UV sampling. Pruning + the 5/15/30mm rejoin merge likely collapsed face-skin verts asymmetrically into the cleaned-up zones. The stats said the body was 0.00mm symmetric and the face surface was 0.00mm symmetric, but the front-face zone (Z 1.40–1.85) was *not* re-checked after the rejoin merge — that's where the visible damage landed.
+
+Lessons for any retry:
+- The "separate hair / symmetrize body / rejoin hair" recipe from `3D_PIPELINE.md` §1b assumes the hair was clean-separated *during the original build* (before the body was decimated and merged). Doing it retroactively on a finished mesh has additional pitfalls because hair-attached face-skin verts have already been topologically merged with skull-skin verts.
+- After the rejoin merge, run a symmetry check on **front-facing skin verts only** (filter Y < -0.15 to exclude side/back), not just the body region (Z<1.30). The 13 skin-colored asym verts I noted as "acceptable seam outliers" were probably the actual visible damage.
+- Prefer fixing face symmetry by editing UVs (mirror the +X face's UV mapping onto -X face geometry) instead of moving geometry, when the face geometry's only "asymmetry" is from texture projection — but this only works if the underlying mesh was already symmetric. Worth checking *before* resorting to geometry mirroring.
+- If geometry mirroring is necessary, do it on a copy of the mesh in isolation (face-only sub-mesh, no hair shell) and re-attach via shrinkwrap or vertex group transfer rather than join + remove_doubles.
+
+### Open items
+
+- Face asymmetry on the source `_pre_rig.blend` is still present — task not solved, just reverted. Need a different approach next time.
+
+---
+
 ## 2026-04-26 — Player rig migrated to Mixamo + Humanoid avatar; per-character prefab path added
 
 **Summary.** Rebuilt the playable-character architecture around Unity Humanoid avatars and Mixamo-rigged FBXs. Existing PlayerA-rigged playable characters (BellhopMan/Woman, Gustav, PlayerA, PlayerB, Archaeologist, Adventurer) are still listed in `GameConfig._playerConfigs` and still work via the legacy mesh-swap path; Adventuress is the first character on the new path. NPCs (workers/customers) keep using `Player.prefab` + PlayerA's `UnitAC.controller` untouched.
